@@ -2,6 +2,8 @@ package com.drona.lms.domain.entity;
 
 import com.drona.lms.common.model.BaseUuidEntity;
 import jakarta.persistence.*;
+
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
@@ -27,6 +29,9 @@ public class Course extends BaseUuidEntity {
 
     @Column(nullable = false)
     private boolean published = false;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+private BigDecimal price = BigDecimal.ZERO;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "instructor_id", nullable = false)

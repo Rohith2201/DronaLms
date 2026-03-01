@@ -121,7 +121,7 @@ import { Course, EntityId } from '../../../core/models';
 
           <div class="card-footer">
             <div class="price">
-              <span class="price-label">{{ course.price === 0 ? 'FREE' : ('$' + course.price) }}</span>
+              <span class="price-label">{{ !course.price || course.price === 0 ? 'Free' : ('$' + course.price) }}</span>
             </div>
             <button mat-flat-button color="primary" 
                     (click)="enrollCourse(course)" 

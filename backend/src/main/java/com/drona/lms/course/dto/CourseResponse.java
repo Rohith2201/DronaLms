@@ -1,5 +1,6 @@
 package com.drona.lms.course.dto;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,6 +15,7 @@ public class CourseResponse {
     private String category;
     private String level;
     private boolean published;
+    private BigDecimal price;
     private UUID instructorId;
     private String instructorName;
 }

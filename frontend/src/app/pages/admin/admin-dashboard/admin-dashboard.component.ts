@@ -41,6 +41,7 @@ import { RealtimeService } from '../../../core/realtime/realtime.service';
         <div class="skeleton-kpi" *ngFor="let i of [1,2,3,4,5,6]"></div>
       </div>
 
+
       <!-- KPIs -->
       <div class="kpi-grid" *ngIf="!loading() && analytics()">
         <div class="kpi-card" style="--kpi-color: #3b82f6">
@@ -166,6 +167,13 @@ import { RealtimeService } from '../../../core/realtime/realtime.service';
 
     .skeleton-kpi { height: 120px; border-radius: var(--radius-xl); background: var(--bg-surface); animation: pulse 1.5s infinite; }
     @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+    .error-state { 
+      text-align: center; padding: var(--space-16); display: flex; flex-direction: column; align-items: center; gap: var(--space-4); 
+      mat-icon { font-size: 72px; color: var(--danger); } 
+      h3 { font-size: 1.25rem; margin: 0; } 
+      p { color: var(--text-secondary); margin: 0; } 
+    }
   `]
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
@@ -174,6 +182,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   loading   = signal(true);
   analytics = signal<AdminAnalytics | null>(null);
+  errorMessage = '';
 
   userGrowthData: ChartData<'bar'> = { labels: [], datasets: [] };
   roleChartData:  ChartData<'doughnut'> = { labels: [], datasets: [] };
@@ -194,13 +203,26 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   };
 
   ngOnInit(): void {
+    this.loadAnalytics();
+  }
+
+  loadAnalytics(): void {
+    this.loading.set(true);
+    this.errorMessage = '';
+    console.log('[AdminDashboard] Loading analytics from /api/v1/users/analytics...');
+    
     this.api.getAdminAnalytics().pipe(takeUntil(this.destroy$)).subscribe({
       next: (data: any) => {
+        console.log('[AdminDashboard] Analytics loaded:', data);
         this.analytics.set(data);
         this.buildCharts(data);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false)
+      error: (err: any) => {
+        console.error('[AdminDashboard] Failed to load analytics:', err);
+        this.errorMessage = err?.error?.message || err?.message || 'Unable to connect to server. Please ensure the backend is running.';
+        this.loading.set(false);
+      }
     });
   }
 

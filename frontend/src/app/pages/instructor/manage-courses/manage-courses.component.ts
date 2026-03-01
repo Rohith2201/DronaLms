@@ -50,9 +50,8 @@ import { Course, EntityId } from '../../../core/models';
           <mat-label>Status</mat-label>
           <mat-select [formControl]="statusCtrl">
             <mat-option value="">All</mat-option>
-            <mat-option value="DRAFT">Draft</mat-option>
-            <mat-option value="PUBLISHED">Published</mat-option>
-            <mat-option value="ARCHIVED">Archived</mat-option>
+            <mat-option value="draft">Draft</mat-option>
+            <mat-option value="published">Published</mat-option>
           </mat-select>
         </mat-form-field>
       </div>
@@ -63,18 +62,18 @@ import { Course, EntityId } from '../../../core/models';
       </div>
 
       <!-- Empty -->
-      <div class="empty-state" *ngIf="!loading() && filtered().length === 0">
+      <div class="empty-state" *ngIf="!loading() && courses().length === 0">
         <mat-icon>library_books</mat-icon>
         <h3>No courses found</h3>
-        <p>{{ searchCtrl.value ? 'Try a different search.' : 'Create your first course to get started.' }}</p>
-        <a mat-flat-button color="primary" routerLink="/instructor/courses/create" *ngIf="!searchCtrl.value">
+        <p>{{ searchCtrl.value || statusCtrl.value ? 'Try a different search or filter.' : 'Create your first course to get started.' }}</p>
+        <a mat-flat-button color="primary" routerLink="/instructor/courses/create" *ngIf="!searchCtrl.value && !statusCtrl.value">
           <mat-icon>add</mat-icon> Create Course
         </a>
       </div>
 
       <!-- Course List -->
-      <div class="courses-list" *ngIf="!loading() && filtered().length > 0">
-        <div class="course-row" *ngFor="let course of filtered(); trackBy: trackId">
+      <div class="courses-list" *ngIf="!loading() && courses().length > 0">
+        <div class="course-row" *ngFor="let course of courses(); trackBy: trackId">
           <img class="thumb" [src]="course.thumbnailUrl || 'assets/course-placeholder.jpg'" [alt]="course.title">
 
           <div class="course-info">
@@ -187,20 +186,25 @@ export class ManageCoursesComponent implements OnInit, OnDestroy {
   searchCtrl = new FormControl('');
   statusCtrl = new FormControl('');
 
-  get filtered(): () => Course[] {
-    return () => {
-      let list = this.courses();
-      const s = (this.searchCtrl.value || '').toLowerCase();
-      const st = this.statusCtrl.value || '';
-      if (s) list = list.filter(c => c.title?.toLowerCase().includes(s));
-      if (st) list = list.filter(c => c.status === st);
-      return list;
-    };
+  ngOnInit(): void {
+    this.loadCourses();
+    this.searchCtrl.valueChanges.pipe(debounceTime(400), takeUntil(this.destroy$))
+      .subscribe(() => this.loadCourses());
+    this.statusCtrl.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.loadCourses());
   }
 
-  ngOnInit(): void {
-    this.api.getMyCourses().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (data: any) => { this.courses.set(data?.content ?? data ?? []); this.loading.set(false); },
+  loadCourses(): void {
+    this.loading.set(true);
+    const search = this.searchCtrl.value || '';
+    const status = this.statusCtrl.value || '';
+    const published = status === 'published' ? true : status === 'draft' ? false : undefined;
+    
+    this.api.getInstructorCourses(0, 100, search, published).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (data: any) => { 
+        this.courses.set(data?.content ?? data ?? []); 
+        this.loading.set(false); 
+      },
       error: () => this.loading.set(false)
     });
   }

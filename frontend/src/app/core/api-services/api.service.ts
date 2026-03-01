@@ -49,11 +49,18 @@ export class ApiService {
     );
   }
 
-  getInstructorCourses(page = 0, size = 50): Observable<Page<Course>> {
+  getInstructorCourses(page = 0, size = 50, search = '', published?: boolean): Observable<Page<Course>> {
     let requestParams = new HttpParams()
       .set('page', String(page))
       .set('size', String(size))
       .set('instructorEmail', 'me');
+
+    if (search) {
+      requestParams = requestParams.set('q', search);
+    }
+    if (published !== undefined) {
+      requestParams = requestParams.set('published', String(published));
+    }
 
     return this.http.get<Page<Course>>(`${this.base}/courses`, { params: requestParams }).pipe(
       map(page => ({
@@ -308,23 +315,7 @@ export class ApiService {
   }
 
   getAdminAnalytics(): Observable<AdminAnalytics> {
-    return forkJoin({
-      courses: this.getCourses({ page: 0, size: 100 }),
-      enrollments: this.getMyEnrollments(),
-      certificates: this.getMyCertificates()
-    }).pipe(
-      map(({ courses, enrollments, certificates }) => ({
-        totalUsers: 0,
-        totalCourses: courses.totalElements ?? courses.content.length,
-        totalEnrollments: enrollments.length,
-        totalCertificates: certificates.length,
-        activeUsers: 0,
-        studentCount: 0,
-        instructorCount: 0,
-        adminCount: 0,
-        userGrowthTrend: []
-      }))
-    );
+    return this.http.get<AdminAnalytics>(`${this.base}/users/analytics`);
   }
 
   aiChat(req: AiChatRequest): Observable<AiChatResponse> {
@@ -344,9 +335,13 @@ export class ApiService {
   }
 
   getAdminUsers(page = 0, size = 10, search = '', role = ''): Observable<Page<User>> {
-    void search;
-    void role;
-    return of({ content: [], totalElements: 0, totalPages: 0, size, number: page, first: true, last: true });
+    let params = new HttpParams()
+      .set('page', String(page))
+      .set('size', String(size));
+    if (search) params = params.set('search', search);
+    if (role) params = params.set('role', role);
+    
+    return this.http.get<Page<User>>(`${this.base}/users`, { params });
   }
 
   getMyCourses(page = 0, size = 50): Observable<Page<Course>> {
@@ -354,14 +349,8 @@ export class ApiService {
   }
 
   updateUserRole(userId: EntityId, role: string): Observable<User> {
-    return of({
-      id: userId,
-      name: `user-${String(userId).slice(0, 8)}`,
-      email: `user-${String(userId).slice(0, 8)}@drona.local`,
-      role: (role?.toUpperCase() as any) ?? 'STUDENT',
-      active: true,
-      createdAt: new Date().toISOString()
-    });
+    const params = new HttpParams().set('role', role);
+    return this.http.patch<User>(`${this.base}/users/${userId}/role`, null, { params });
   }
 
   deleteUser(userId: EntityId): Observable<void> {
@@ -410,7 +399,8 @@ export class ApiService {
     return {
       ...course,
       status: isPublished ? 'PUBLISHED' : (course.status ?? 'DRAFT'),
-      published: Boolean(isPublished)
+      published: Boolean(isPublished),
+      price: course.price ?? 0
     };
   }
 

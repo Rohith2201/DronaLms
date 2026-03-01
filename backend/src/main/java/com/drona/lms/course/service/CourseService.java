@@ -8,6 +8,8 @@ import com.drona.lms.course.dto.CourseUpdateRequest;
 import com.drona.lms.domain.entity.Course;
 import com.drona.lms.domain.repository.CourseRepository;
 import com.drona.lms.domain.repository.UserRepository;
+
+import java.math.BigDecimal;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -90,6 +92,7 @@ public class CourseService {
                 .category(course.getCategory())
                 .level(course.getLevel())
                 .published(course.isPublished())
+                .price(course.getPrice() != null ? course.getPrice() : BigDecimal.ZERO)
                 .instructorId(course.getInstructor() != null ? course.getInstructor().getId() : null)
                 .instructorName(course.getInstructor() != null ? 
                     course.getInstructor().getFirstName() + " " + course.getInstructor().getLastName() : null)
