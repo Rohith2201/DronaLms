@@ -1,0 +1,37 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  application:
+    name: drona-lms-backend
+  datasource:
+    url: jdbc:postgresql://ep-icy-union-a1htx5mg-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+    username: neondb_owner
+    password: npg_KonLvNBH35dZ
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+logging:
+  level:
+    root: INFO
+    com.drona.lms: DEBUG
+
+app:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:change-me-to-a-very-long-secure-secret-key-at-least-32-bytes}
+      access-token-expiration-ms: ${JWT_ACCESS_TOKEN_EXPIRATION_MS:86400000}
+  ai-service:
+    base-url: ${AI_SERVICE_BASE_URL:http://localhost:8000}
