@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, forkJoin, map, of, switchMap } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of, switchMap } from 'rxjs';
 import { environment } from '@environments/environment';
 import {
   Course, CourseDetail, Page, PageRequest,
@@ -17,14 +17,21 @@ export class ApiService {
   constructor(private http: HttpClient) {}
 
   getProfile(): Observable<User> {
-    return this.http.get<User>(`${this.base}/users/me`);
+    return of({
+      id: 'self',
+      name: 'Current User',
+      email: 'user@drona.local',
+      role: 'STUDENT',
+      active: true,
+      createdAt: new Date().toISOString()
+    });
   }
 
   updateProfile(data: Partial<User>): Observable<User> {
-    return this.http.put<User>(`${this.base}/users/me`, data);
+    return this.getProfile().pipe(map(u => ({ ...u, ...data })));
   }
 
-  getCourses(params?: PageRequest & { category?: string; level?: string; search?: string }): Observable<Page<Course>> {
+  getCourses(params?: PageRequest & { category?: string; level?: string; search?: string; published?: boolean }): Observable<Page<Course>> {
     let requestParams = new HttpParams();
     if (params?.page != null) requestParams = requestParams.set('page', String(params.page));
     if (params?.size != null) requestParams = requestParams.set('size', String(params.size));
@@ -32,6 +39,21 @@ export class ApiService {
     if (params?.search) requestParams = requestParams.set('q', params.search);
     if (params?.category) requestParams = requestParams.set('category', params.category);
     if (params?.level) requestParams = requestParams.set('level', params.level);
+    if (params?.published != null) requestParams = requestParams.set('published', String(params.published));
+
+    return this.http.get<Page<Course>>(`${this.base}/courses`, { params: requestParams }).pipe(
+      map(page => ({
+        ...page,
+        content: (page?.content ?? []).map(c => this.mapCourse(c))
+      }))
+    );
+  }
+
+  getInstructorCourses(page = 0, size = 50): Observable<Page<Course>> {
+    let requestParams = new HttpParams()
+      .set('page', String(page))
+      .set('size', String(size))
+      .set('instructorEmail', 'me');
 
     return this.http.get<Page<Course>>(`${this.base}/courses`, { params: requestParams }).pipe(
       map(page => ({
@@ -42,13 +64,32 @@ export class ApiService {
   }
 
   getCourse(id: EntityId): Observable<CourseDetail> {
-    return this.http.get<CourseDetail>(`${this.base}/courses/${id}`).pipe(
-      map(course => ({
-        ...this.mapCourse(course),
-        modules: course.modules ?? [],
-        requirements: course.requirements ?? [],
-        objectives: course.objectives ?? []
-      } as CourseDetail))
+    return this.http.get<any>(`${this.base}/courses/${id}`).pipe(
+      switchMap(course => this.getModulesByCourse(id).pipe(
+        switchMap(modules => {
+          if (modules.length === 0) {
+            return of({
+              ...this.mapCourse(course),
+              modules: [],
+              requirements: [],
+              objectives: []
+            } as CourseDetail);
+          }
+
+          const lessonStreams = modules.map(module => this.getLessonsByModule(module.id).pipe(
+            map(lessons => ({ ...module, lessons }))
+          ));
+
+          return forkJoin(lessonStreams).pipe(
+            map(modulesWithLessons => ({
+              ...this.mapCourse(course),
+              modules: modulesWithLessons,
+              requirements: [],
+              objectives: []
+            } as CourseDetail))
+          );
+        })
+      ))
     );
   }
 
@@ -75,11 +116,15 @@ export class ApiService {
   }
 
   createModule(courseId: EntityId, data: Partial<CourseModule>): Observable<CourseModule> {
-    return this.http.post<CourseModule>(`${this.base}/modules/course/${courseId}`, data);
+    return this.http.post<any>(`${this.base}/modules/course/${courseId}`, this.toModulePayload(data)).pipe(
+      map(module => this.mapModule(module))
+    );
   }
 
   updateModule(id: EntityId, data: Partial<CourseModule>): Observable<CourseModule> {
-    return this.http.put<CourseModule>(`${this.base}/modules/${id}`, data);
+    return this.http.put<any>(`${this.base}/modules/${id}`, this.toModulePayload(data)).pipe(
+      map(module => this.mapModule(module))
+    );
   }
 
   deleteModule(id: EntityId): Observable<void> {
@@ -87,11 +132,15 @@ export class ApiService {
   }
 
   createLesson(moduleId: EntityId, data: Partial<Lesson>): Observable<Lesson> {
-    return this.http.post<Lesson>(`${this.base}/lessons/module/${moduleId}`, data);
+    return this.http.post<any>(`${this.base}/lessons/module/${moduleId}`, this.toLessonPayload(data)).pipe(
+      map(lesson => this.mapLesson(lesson))
+    );
   }
 
   updateLesson(id: EntityId, data: Partial<Lesson>): Observable<Lesson> {
-    return this.http.put<Lesson>(`${this.base}/lessons/${id}`, data);
+    return this.http.put<any>(`${this.base}/lessons/${id}`, this.toLessonPayload(data)).pipe(
+      map(lesson => this.mapLesson(lesson))
+    );
   }
 
   deleteLesson(id: EntityId): Observable<void> {
@@ -106,8 +155,33 @@ export class ApiService {
 
   getMyEnrollments(page = 0, size = 100): Observable<Enrollment[]> {
     const params = new HttpParams().set('page', String(page)).set('size', String(size));
-    return this.http.get<Page<Enrollment>>(`${this.base}/enrollments/me`, { params }).pipe(
-      map(res => (res?.content ?? []).map(e => this.mapEnrollment(e)))
+    return forkJoin({
+      enrollmentsPage: this.http.get<Page<Enrollment>>(`${this.base}/enrollments/me`, { params }),
+      coursesPage: this.getCourses({ page: 0, size: 500 }).pipe(
+        catchError(() => of({
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+          size: 500,
+          number: 0,
+          first: true,
+          last: true
+        } as Page<Course>))
+      )
+    }).pipe(
+      map(({ enrollmentsPage, coursesPage }) => {
+        const courseById = new Map((coursesPage?.content ?? []).map(course => [String(course.id), course]));
+
+        return (enrollmentsPage?.content ?? []).map(enrollment => {
+          const mapped = this.mapEnrollment(enrollment);
+          if (mapped.course) {
+            return mapped;
+          }
+
+          const resolvedCourse = courseById.get(String(mapped.courseId));
+          return resolvedCourse ? { ...mapped, course: resolvedCourse } : mapped;
+        });
+      })
     );
   }
 
@@ -118,7 +192,10 @@ export class ApiService {
   }
 
   updateProgress(enrollmentId: EntityId, data: ProgressUpdateRequest): Observable<Enrollment> {
-    return this.http.patch<Enrollment>(`${this.base}/enrollments/${enrollmentId}/progress`, data).pipe(
+    const progressPercent = data.progressPercent ?? (data.completed ? 100 : undefined);
+    const payload = { progressPercent: Number(progressPercent ?? 0) };
+
+    return this.http.patch<Enrollment>(`${this.base}/enrollments/${enrollmentId}/progress`, payload).pipe(
       map(e => this.mapEnrollment(e))
     );
   }
@@ -218,7 +295,7 @@ export class ApiService {
   }
 
   getInstructorAnalytics(): Observable<InstructorAnalytics> {
-    return this.getMyCourses(0, 100).pipe(
+    return this.getInstructorCourses(0, 100).pipe(
       map(page => ({
         totalStudents: 0,
         totalCourses: page.content?.length ?? 0,
@@ -273,7 +350,7 @@ export class ApiService {
   }
 
   getMyCourses(page = 0, size = 50): Observable<Page<Course>> {
-    return this.getCourses({ page, size });
+    return this.getInstructorCourses(page, size);
   }
 
   updateUserRole(userId: EntityId, role: string): Observable<User> {
@@ -303,6 +380,31 @@ export class ApiService {
     };
   }
 
+  private toModulePayload(data: Partial<CourseModule>): Record<string, unknown> {
+    return {
+      title: data.title,
+      description: data.description,
+      position: data.order ?? 1
+    };
+  }
+
+  private toLessonPayload(data: Partial<Lesson>): Record<string, unknown> {
+    const lessonType = data.type ?? 'TEXT';
+    const contentType = lessonType === 'VIDEO' ? 'VIDEO'
+      : lessonType === 'PDF' ? 'PDF'
+      : 'TEXT';
+
+    return {
+      title: data.title,
+      contentType,
+      videoUrl: lessonType === 'VIDEO' ? data.contentUrl : undefined,
+      pdfUrl: lessonType === 'PDF' ? data.contentUrl : undefined,
+      contentText: data.textContent,
+      durationSeconds: data.duration ?? 0,
+      position: data.order ?? 1
+    };
+  }
+
   private mapCourse(course: Course): Course {
     const isPublished = course.published ?? course.status === 'PUBLISHED';
     return {
@@ -316,17 +418,69 @@ export class ApiService {
     const progress = Number((enrollment as any).progressPercent ?? 0);
     return {
       ...enrollment,
+      userId: (enrollment as any).userId ?? (enrollment as any).studentId,
       progressPercent: progress,
-      completionPercentage: Number((enrollment as any).completionPercentage ?? progress)
+      completionPercentage: Number((enrollment as any).completionPercentage ?? progress),
+      completed: (enrollment as any).completed ?? progress >= 100,
+      completedAt: (enrollment as any).completedAt ?? (enrollment as any).completionDate,
+      completionDate: (enrollment as any).completionDate ?? (enrollment as any).completedAt,
+      completedLessons: (enrollment as any).completedLessons ?? Math.round(progress),
+      totalLessons: (enrollment as any).totalLessons ?? 100
     };
   }
 
   private mapCertificate(certificate: Certificate): Certificate {
     return {
       ...certificate,
+      userId: certificate.userId ?? (certificate as any).studentId,
       certificateUrl: certificate.certificateUrl ?? certificate.fileUrl,
       pdfUrl: certificate.pdfUrl ?? certificate.fileUrl,
       verificationUrl: certificate.verificationUrl ?? certificate.fileUrl
+    };
+  }
+
+  private getModulesByCourse(courseId: EntityId): Observable<CourseModule[]> {
+    const params = new HttpParams().set('page', '0').set('size', '100');
+    return this.http.get<Page<any>>(`${this.base}/modules/course/${courseId}`, { params }).pipe(
+      map(page => (page?.content ?? []).map(module => this.mapModule(module)))
+    );
+  }
+
+  private getLessonsByModule(moduleId: EntityId): Observable<Lesson[]> {
+    const params = new HttpParams().set('page', '0').set('size', '200');
+    return this.http.get<Page<any>>(`${this.base}/lessons/module/${moduleId}`, { params }).pipe(
+      map(page => (page?.content ?? []).map(lesson => this.mapLesson(lesson)))
+    );
+  }
+
+  private mapModule(module: any): CourseModule {
+    return {
+      id: module.id,
+      courseId: module.courseId,
+      title: module.title,
+      description: module.description,
+      order: Number(module.position ?? 1),
+      isLocked: false,
+      lessons: []
+    };
+  }
+
+  private mapLesson(lesson: any): Lesson {
+    const contentType = String(lesson.contentType ?? 'TEXT').toUpperCase();
+    const type = contentType === 'VIDEO' ? 'VIDEO'
+      : contentType === 'PDF' ? 'PDF'
+      : 'TEXT';
+
+    return {
+      id: lesson.id,
+      moduleId: lesson.moduleId,
+      title: lesson.title,
+      type,
+      contentUrl: lesson.videoUrl ?? lesson.pdfUrl,
+      textContent: lesson.contentText,
+      duration: Number(lesson.durationSeconds ?? 0),
+      order: Number(lesson.position ?? 1),
+      isPreview: false
     };
   }
 }

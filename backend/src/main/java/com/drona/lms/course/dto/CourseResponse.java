@@ -15,4 +15,5 @@ public class CourseResponse {
     private String level;
     private boolean published;
     private UUID instructorId;
+    private String instructorName;
 }

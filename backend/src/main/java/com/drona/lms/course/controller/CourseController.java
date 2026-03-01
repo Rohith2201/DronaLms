@@ -34,7 +34,13 @@ public class CourseController {
     @GetMapping
     public ResponseEntity<Page<CourseResponse>> getCourses(@RequestParam(required = false) String q,
                                                            @RequestParam(required = false) Boolean published,
+                                                           @RequestParam(required = false) String instructorEmail,
+                                                           @AuthenticationPrincipal UserDetails principal,
                                                            Pageable pageable) {
+        // If instructorEmail is "me", get courses for the current user
+        if ("me".equalsIgnoreCase(instructorEmail) && principal != null) {
+            return ResponseEntity.ok(courseService.getInstructorCourses(principal.getUsername(), pageable));
+        }
         return ResponseEntity.ok(courseService.getCourses(q, published, pageable));
     }
 

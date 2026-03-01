@@ -10,6 +10,7 @@ import { AuthResponse, LoginRequest, RegisterRequest, User, JwtPayload } from '.
 export class AuthService {
   private readonly TOKEN_KEY   = environment.tokenKey;
   private readonly REFRESH_KEY = environment.refreshTokenKey;
+  private readonly USER_KEY    = 'drona_user';
 
   private _currentUser = new BehaviorSubject<User | null>(this.loadUser());
   readonly currentUser$ = this._currentUser.asObservable();
@@ -61,16 +62,21 @@ export class AuthService {
   }
 
   logout(): void {
+    sessionStorage.removeItem(this.TOKEN_KEY);
+    sessionStorage.removeItem(this.REFRESH_KEY);
+    sessionStorage.removeItem(this.USER_KEY);
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_KEY);
+    localStorage.removeItem(this.USER_KEY);
     this._currentUser.next(null);
     this.userSignal.set(null);
     this.router.navigate(['/auth/login']);
   }
 
   getToken(): string | null {
-    const token = localStorage.getItem(this.TOKEN_KEY);
+    const token = sessionStorage.getItem(this.TOKEN_KEY) || localStorage.getItem(this.TOKEN_KEY);
     if (!token || !this.isJwtLike(token)) {
+      sessionStorage.removeItem(this.TOKEN_KEY);
       localStorage.removeItem(this.TOKEN_KEY);
       return null;
     }
@@ -78,7 +84,7 @@ export class AuthService {
   }
 
   getRefreshToken(): string | null {
-    return localStorage.getItem(this.REFRESH_KEY);
+    return sessionStorage.getItem(this.REFRESH_KEY) || localStorage.getItem(this.REFRESH_KEY);
   }
 
   isTokenExpired(): boolean {
@@ -99,25 +105,51 @@ export class AuthService {
   private storeSession(res: AuthResponse): void {
     const token = res.accessToken ?? res.token;
     if (!token || !this.isJwtLike(token)) {
+      sessionStorage.removeItem(this.TOKEN_KEY);
       localStorage.removeItem(this.TOKEN_KEY);
       return;
     }
 
-    localStorage.setItem(this.TOKEN_KEY, token);
+    sessionStorage.setItem(this.TOKEN_KEY, token);
+    localStorage.removeItem(this.TOKEN_KEY);
     if (res.refreshToken) {
-      localStorage.setItem(this.REFRESH_KEY, res.refreshToken);
+      sessionStorage.setItem(this.REFRESH_KEY, res.refreshToken);
+      localStorage.removeItem(this.REFRESH_KEY);
     } else {
+      sessionStorage.removeItem(this.REFRESH_KEY);
       localStorage.removeItem(this.REFRESH_KEY);
     }
 
     const user = this.resolveUser(res, token);
+    console.log('[AuthService] storeSession - resolved user:', user);
+    
+    // Store user object in sessionStorage
+    sessionStorage.setItem(this.USER_KEY, JSON.stringify(user));
+    localStorage.removeItem(this.USER_KEY);
+    
     this._currentUser.next(user);
     this.userSignal.set(user);
   }
 
   private loadUser(): User | null {
-    const token = localStorage.getItem(environment.tokenKey);
+    // First try to get stored user object
+    const storedUser = sessionStorage.getItem(this.USER_KEY) || localStorage.getItem(this.USER_KEY);
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser) as User;
+        console.log('[AuthService] loadUser - from storage:', user);
+        return user;
+      } catch (err) {
+        console.error('[AuthService] loadUser - failed to parse stored user:', err);
+        sessionStorage.removeItem(this.USER_KEY);
+        localStorage.removeItem(this.USER_KEY);
+      }
+    }
+    
+    // Fall back to reconstructing from JWT token
+    const token = sessionStorage.getItem(environment.tokenKey) || localStorage.getItem(environment.tokenKey);
     if (!token || !this.isJwtLike(token)) {
+      sessionStorage.removeItem(environment.tokenKey);
       localStorage.removeItem(environment.tokenKey);
       return null;
     }
@@ -126,8 +158,7 @@ export class AuthService {
       if ((payload.exp * 1000) < Date.now()) return null;
       if (payload.user) return payload.user;
 
-      const roleRaw = payload.roles?.[0] ?? payload.roles?.[0] ?? 'STUDENT';
-      const role = this.normalizeRole(roleRaw);
+      const role = this.resolvePrimaryRole(payload.roles, 'STUDENT');
       const email = payload.email ?? payload.sub;
       const name = email?.split('@')[0] ?? 'User';
 
@@ -145,15 +176,29 @@ export class AuthService {
   }
 
   private resolveUser(res: AuthResponse, token: string): User {
-    if (res.user) return res.user;
+    console.log('[AuthService] resolveUser - input:', { res, hasToken: !!token });
+    
+    if (res.user) {
+      const normalizedRole = this.normalizeRole((res.user as any).role);
+      console.log('[AuthService] resolveUser - from res.user, role:', (res.user as any).role, '→', normalizedRole);
+      return {
+        ...res.user,
+        role: normalizedRole
+      };
+    }
 
     try {
       const payload = jwtDecode<JwtPayload & { email?: string; roles?: string[] }>(token);
-      const roleRaw = res.roles?.[0] ?? payload.roles?.[0] ?? 'STUDENT';
-      const role = this.normalizeRole(roleRaw);
+      const combinedRoles = [
+        ...(res.roles ?? []),
+        ...(payload.roles ?? [])
+      ];
+      console.log('[AuthService] resolveUser - combinedRoles:', combinedRoles);
+      const role = this.resolvePrimaryRole(combinedRoles, 'STUDENT');
       const email = res.email ?? payload.email ?? payload.sub;
       const name = email?.split('@')[0] ?? 'User';
 
+      console.log('[AuthService] resolveUser - resolved role:', role);
       return {
         id: payload.userId ?? payload.sub,
         name,
@@ -162,8 +207,9 @@ export class AuthService {
         active: true,
         createdAt: new Date().toISOString()
       };
-    } catch {
-      const role = this.normalizeRole(res.roles?.[0] ?? 'STUDENT');
+    } catch (err) {
+      console.error('[AuthService] resolveUser - JWT decode error:', err);
+      const role = this.resolvePrimaryRole(res.roles, 'STUDENT');
       const email = res.email ?? 'user@drona.local';
       return {
         id: email,
@@ -180,6 +226,15 @@ export class AuthService {
     const normalized = (rawRole ?? '').replace(/^ROLE_/, '').toUpperCase();
     if (normalized === 'ADMIN' || normalized === 'INSTRUCTOR') return normalized;
     return 'STUDENT';
+  }
+
+  private resolvePrimaryRole(roles?: string[] | null, fallback: 'STUDENT' | 'INSTRUCTOR' | 'ADMIN' = 'STUDENT'): 'STUDENT' | 'INSTRUCTOR' | 'ADMIN' {
+    const normalizedRoles = (roles ?? []).map(role => this.normalizeRole(role));
+    console.log('[AuthService] resolvePrimaryRole - input roles:', roles, '→ normalized:', normalizedRoles);
+    if (normalizedRoles.includes('ADMIN')) return 'ADMIN';
+    if (normalizedRoles.includes('INSTRUCTOR')) return 'INSTRUCTOR';
+    if (normalizedRoles.includes('STUDENT')) return 'STUDENT';
+    return fallback;
   }
 
   private isJwtLike(token: string): boolean {

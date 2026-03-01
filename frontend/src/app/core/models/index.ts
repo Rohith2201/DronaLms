@@ -140,17 +140,20 @@ export interface Enrollment {
   completedLessons: number;
   totalLessons: number;
   lastAccessedAt?: string;
-  lastLessonId?: number;
+  lastLessonId?: EntityId;
   lastWatchedSeconds?: number;
   enrolledAt: string;
   completedAt?: string;
+  completed?: boolean;
+  completionDate?: string;
   certificateIssued?: boolean;
 }
 
 export interface ProgressUpdateRequest {
-  lessonId: EntityId;
-  watchedSeconds: number;
-  completed: boolean;
+  progressPercent?: number;
+  lessonId?: EntityId;
+  watchedSeconds?: number;
+  completed?: boolean;
 }
 
 // ─── Quiz ───────────────────────────────────────────────────

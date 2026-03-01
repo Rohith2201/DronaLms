@@ -24,9 +24,19 @@ const routes: Routes = [
         loadComponent: () => import('../../pages/student/my-courses/my-courses.component').then(m => m.MyCoursesComponent)
       },
       {
+        path: 'student/explore',
+        canActivate: [RoleGuard], data: { roles: ['STUDENT'] },
+        loadComponent: () => import('../../pages/student/explore-courses/explore-courses.component').then(m => m.ExploreCoursesComponent)
+      },
+      {
         path: 'student/certificates',
         canActivate: [RoleGuard], data: { roles: ['STUDENT'] },
         loadComponent: () => import('../../pages/student/certificates/certificates.component').then(m => m.CertificatesComponent)
+      },
+      // Browse courses - accessible to all authenticated users
+      {
+        path: 'courses',
+        loadComponent: () => import('../../pages/student/explore-courses/explore-courses.component').then(m => m.ExploreCoursesComponent)
       },
 
       // ── Instructor ───────────────────────────────────────────────────────

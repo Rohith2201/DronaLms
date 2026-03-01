@@ -17,15 +17,29 @@ export class AuthGuard implements CanActivate {
 
 @Injectable({ providedIn: 'root' })
 export class RoleGuard implements CanActivate {
+
   constructor(private auth: AuthService, private router: Router) {}
 
   canActivate(route: ActivatedRouteSnapshot): boolean {
+
     const requiredRoles: string[] = route.data['roles'] ?? [];
-    const userRole = this.auth.userRole();
+    const currentUser = this.auth.getCurrentUser();
+    const userRole = currentUser?.role;
+
+    console.log('[RoleGuard] Checking access:', {
+      path: route.routeConfig?.path,
+      requiredRoles,
+      currentUser,
+      userRole,
+      hasUser: !!currentUser
+    });
 
     if (!requiredRoles.length || (userRole && requiredRoles.includes(userRole))) {
+      console.log('[RoleGuard] Access granted');
       return true;
     }
+
+    console.log('[RoleGuard] Access DENIED - redirecting to 403');
     this.router.navigate(['/403']);
     return false;
   }

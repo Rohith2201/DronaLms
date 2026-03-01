@@ -35,7 +35,7 @@ import { Course, EntityId } from '../../../core/models';
           <h1>Manage Courses</h1>
           <p>{{ courses().length }} course{{ courses().length !== 1 ? 's' : '' }}</p>
         </div>
-import { Course, EntityId } from '../../../core/models';
+        <a mat-flat-button color="primary" routerLink="/instructor/courses/create">
           <mat-icon>add</mat-icon> Create Course
         </a>
       </div>

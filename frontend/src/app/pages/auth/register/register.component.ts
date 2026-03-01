@@ -49,6 +49,7 @@ import { UserRole } from '../../../core/models';
             <mat-select formControlName="role">
               <mat-option value="STUDENT">Student</mat-option>
               <mat-option value="INSTRUCTOR">Instructor</mat-option>
+              <mat-option value="ADMIN">Admin</mat-option>
             </mat-select>
             <mat-icon matPrefix>badge</mat-icon>
           </mat-form-field>
@@ -136,7 +137,14 @@ export class RegisterComponent {
       next: () => {
         this.loading.set(false);
         this.notif.success('Account created!', 'Welcome to Drona LMS');
-        this.router.navigate(['/student/dashboard']);
+        const currentUser = this.auth.getCurrentUser();
+        const currentRole = currentUser?.role ?? 'STUDENT';
+        const defaultRoute = currentRole === 'INSTRUCTOR'
+          ? '/instructor/dashboard'
+          : currentRole === 'ADMIN'
+            ? '/admin/dashboard'
+            : '/student/dashboard';
+        this.router.navigateByUrl(defaultRoute);
       },
       error: err => {
         this.loading.set(false);

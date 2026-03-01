@@ -251,7 +251,7 @@ export class CreateCourseComponent implements OnDestroy {
     this.api.createCourse(payload).pipe(takeUntil(this.destroy$)).subscribe({
       next: (course: any) => {
         this.saving.set(false);
-        this.router.navigate(['/instructor/courses', course.id, 'manage']);
+        this.router.navigate(['/instructor/courses']);
       },
       error: () => this.saving.set(false)
     });

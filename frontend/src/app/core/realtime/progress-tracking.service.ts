@@ -45,6 +45,7 @@ export class ProgressTrackingService implements OnDestroy {
     this.videoTick$.next(progress);
     const completed = progress.percent >= this.COMPLETION_THRESHOLD;
     this.queueSave({
+      progressPercent: progress.percent,
       lessonId: progress.lessonId,
       watchedSeconds: progress.watchedSeconds,
       completed
@@ -57,6 +58,7 @@ export class ProgressTrackingService implements OnDestroy {
   // ─── Manual lesson complete trigger ───────────────────────
   markComplete(enrollmentId: EntityId, lessonId: EntityId): Observable<Enrollment> {
     return this.api.updateProgress(enrollmentId, {
+      progressPercent: 100,
       lessonId,
       watchedSeconds: 0,
       completed: true
@@ -88,7 +90,7 @@ export class ProgressTrackingService implements OnDestroy {
       filter(Boolean),
       debounceTime(this.SAVE_DEBOUNCE_MS),
       distinctUntilChanged((a, b) =>
-        a.lessonId === b.lessonId && Math.abs(a.watchedSeconds - b.watchedSeconds) < 10
+        a.lessonId === b.lessonId && Math.abs((a.watchedSeconds ?? 0) - (b.watchedSeconds ?? 0)) < 10
       ),
       switchMap(req => this.api.updateProgress(enrollmentId, req)),
       takeUntil(this.destroy$)

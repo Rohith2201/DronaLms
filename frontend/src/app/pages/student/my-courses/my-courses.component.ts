@@ -106,8 +106,8 @@ interface EnrolledCourse {
         <div class="course-card" *ngFor="let item of filteredCourses(); trackBy: trackCourse">
           <!-- Thumbnail -->
           <div class="card-thumb">
-            <img [src]="item.course?.thumbnailUrl || 'assets/course-placeholder.jpg'"
-                 [alt]="item.course?.title" loading="lazy">
+            <img [src]="item.course.thumbnailUrl || 'assets/course-placeholder.jpg'"
+                 [alt]="item.course.title" loading="lazy">
             <div class="thumb-overlay">
               <a mat-fab color="primary" [routerLink]="['/learn', item.course.id]" class="play-btn" matTooltip="Continue Learning">
                 <mat-icon>play_arrow</mat-icon>
@@ -120,8 +120,8 @@ interface EnrolledCourse {
 
           <!-- Card Body -->
           <div class="card-body">
-            <h3 class="card-title">{{ item.course?.title }}</h3>
-            <p class="card-instructor">{{ item.course?.instructorName }}</p>
+            <h3 class="card-title">{{ item.course.title }}</h3>
+            <p class="card-instructor">{{ item.course.instructorName }}</p>
 
             <!-- Progress -->
             <div class="progress-section">
@@ -149,10 +149,10 @@ interface EnrolledCourse {
       <!-- LIST VIEW -->
       <div class="courses-list" *ngIf="!loading() && filteredCourses().length > 0 && viewMode() === 'list'">
         <div class="list-item" *ngFor="let item of filteredCourses(); trackBy: trackCourse">
-          <img class="list-thumb" [src]="item.course?.thumbnailUrl || 'assets/course-placeholder.jpg'" [alt]="item.course?.title">
+          <img class="list-thumb" [src]="item.course.thumbnailUrl || 'assets/course-placeholder.jpg'" [alt]="item.course.title">
           <div class="list-info">
-            <h3>{{ item.course?.title }}</h3>
-            <p>{{ item.course?.instructorName }}</p>
+            <h3>{{ item.course.title }}</h3>
+            <p>{{ item.course.instructorName }}</p>
             <div class="list-progress">
               <mat-progress-bar mode="determinate" [value]="item.enrollment.completionPercentage" color="primary"></mat-progress-bar>
               <span>{{ item.enrollment.completionPercentage | number:'1.0-0' }}%</span>

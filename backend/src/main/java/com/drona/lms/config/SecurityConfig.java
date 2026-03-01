@@ -37,15 +37,49 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-            .cors(cors -> {
-            })
+                .cors(cors -> {
+                })
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/v1/auth/**", "/actuator/health").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/courses/**").hasAnyRole("ADMIN", "INSTRUCTOR", "STUDENT")
-                        .requestMatchers(HttpMethod.POST, "/api/v1/courses/**").hasAnyRole("ADMIN", "INSTRUCTOR")
-                        .anyRequest().authenticated())
+
+                        // ✅ Preflight
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // ✅ Public endpoints
+                        .requestMatchers(
+                                "/api/v1/auth/**",
+                                "/actuator/health",
+                                "/ws/**")
+                        .permitAll()
+
+                        // ✅ Admin
+                        .requestMatchers("/api/v1/admin/**")
+                        .hasRole("ADMIN")
+
+                        // ✅ Instructor
+                        .requestMatchers("/api/v1/instructor/**")
+                        .hasRole("INSTRUCTOR")
+
+                        // ✅ Student
+                        .requestMatchers("/api/v1/student/**")
+                        .hasRole("STUDENT")
+
+                        // ✅ Shared LMS APIs
+                        .requestMatchers("/api/v1/certificates/**")
+                        .hasAnyRole("ADMIN", "INSTRUCTOR", "STUDENT")
+
+                        .requestMatchers(HttpMethod.GET, "/api/v1/courses/**")
+                        .hasAnyRole("ADMIN", "INSTRUCTOR", "STUDENT")
+
+                        .requestMatchers(HttpMethod.POST, "/api/v1/courses/**")
+                        .hasAnyRole("ADMIN", "INSTRUCTOR")
+
+                        // ✅ fallback for logged users
+                        .requestMatchers("/api/v1/**")
+                        .authenticated()
+
+                        // ✅ everything else
+                        .anyRequest().permitAll())
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
@@ -72,7 +106,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:4200", "http://127.0.0.1:4200"));
+        configuration.setAllowedOriginPatterns(List.of("*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin"));
         configuration.setExposedHeaders(List.of("Authorization"));

@@ -45,7 +45,7 @@ public class CertificateController {
     }
 
     @GetMapping("/me")
-    @PreAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN','STUDENT')")
     public ResponseEntity<Page<CertificateResponse>> myCertificates(@AuthenticationPrincipal UserDetails principal,
                                                                     Pageable pageable) {
         return ResponseEntity.ok(certificateService.myCertificates(principal.getUsername(), pageable));

@@ -25,7 +25,14 @@ public class CourseService {
 
     @Transactional(readOnly = true)
     public Page<CourseResponse> getCourses(String q, Boolean published, Pageable pageable) {
-        return courseRepository.search(q, published, pageable).map(this::toResponse);
+        return courseRepository.search(q, published, null, pageable).map(this::toResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CourseResponse> getInstructorCourses(String instructorEmail, Pageable pageable) {
+        var instructor = userRepository.findByEmail(instructorEmail)
+                .orElseThrow(() -> new IllegalArgumentException("Instructor not found"));
+        return courseRepository.search(null, null, instructor.getId(), pageable).map(this::toResponse);
     }
 
     @Transactional(readOnly = true)
@@ -83,7 +90,9 @@ public class CourseService {
                 .category(course.getCategory())
                 .level(course.getLevel())
                 .published(course.isPublished())
-                .instructorId(course.getInstructor().getId())
+                .instructorId(course.getInstructor() != null ? course.getInstructor().getId() : null)
+                .instructorName(course.getInstructor() != null ? 
+                    course.getInstructor().getFirstName() + " " + course.getInstructor().getLastName() : null)
                 .build();
     }
 }

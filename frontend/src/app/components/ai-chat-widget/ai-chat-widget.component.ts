@@ -11,7 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Subject, takeUntil } from 'rxjs';
 import { ApiService } from '../../core/api-services/api.service';
-import { AiChatMessage } from '../../core/models';
+import { AiChatMessage, EntityId } from '../../core/models';
 
 @Component({
   selector: 'app-ai-chat-widget',
@@ -307,8 +307,8 @@ import { AiChatMessage } from '../../core/models';
 })
 export class AiChatWidgetComponent implements OnDestroy {
   @ViewChild('messagesArea') messagesArea!: ElementRef<HTMLDivElement>;
-  @Input() courseId?: number;
-  @Input() lessonId?: number;
+  @Input() courseId?: EntityId;
+  @Input() lessonId?: EntityId;
   @Input() lessonTitle?: string;
 
   inputCtrl = new FormControl('');

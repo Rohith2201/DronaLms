@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from 
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { CourseModule } from '../../core/models';
+import { CourseModule, EntityId } from '../../core/models';
 
 @Component({
   selector: 'app-module-progress',
@@ -200,8 +200,8 @@ import { CourseModule } from '../../core/models';
 })
 export class ModuleProgressComponent {
   @Input({ required: true }) module!: CourseModule;
-  @Input() activeLessonId?: number;
-  @Output() onLessonSelect = new EventEmitter<number>();
+  @Input() activeLessonId?: EntityId;
+  @Output() onLessonSelect = new EventEmitter<EntityId>();
 
   expanded = false;
 
