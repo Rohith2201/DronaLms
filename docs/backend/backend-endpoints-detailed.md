@@ -470,5 +470,5 @@ API Prefix: `/api/v1`
 - `GET /swagger-ui/index.html`
 
 ## Companion Files
-- Endpoint list: `docs/backend-endpoints.md`
-- JSON requests: `docs/backend-test-requests.json`
+- Endpoint list: `docs/backend/backend-endpoints.md`
+- JSON requests: `docs/backend/backend-test-requests.json`

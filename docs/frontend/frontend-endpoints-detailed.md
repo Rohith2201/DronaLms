@@ -325,6 +325,6 @@ API base configured in frontend: `/api/v1` (proxied to backend)
 - Private sections are guarded via `AuthGuard`; role restrictions are applied in feature modules and backend authorization.
 - Public certificate verification route is `GET /verify-certificate` with optional `?cert=` query.
 - Companion docs:
-  - `docs/frontend-endpoints.md` (summary)
-  - `docs/backend-endpoints-detailed.md` (backend detailed)
-  - `docs/backend-test-requests.json` (backend test payloads)
+  - `docs/frontend/frontend-endpoints.md` (summary)
+  - `docs/backend/backend-endpoints-detailed.md` (backend detailed)
+  - `docs/backend/backend-test-requests.json` (backend test payloads)
