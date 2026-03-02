@@ -27,6 +27,9 @@ public class Course extends BaseUuidEntity {
     @Column(length = 50)
     private String level;
 
+    @Column(name = "thumbnail_url", columnDefinition = "TEXT")
+    private String thumbnailUrl;
+
     @Column(nullable = false)
     private boolean published = false;
 

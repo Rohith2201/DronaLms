@@ -21,5 +21,7 @@ public class CourseCreateRequest {
     @Size(max = 50)
     private String level;
 
+    private String thumbnailUrl;
+
     private boolean published;
 }

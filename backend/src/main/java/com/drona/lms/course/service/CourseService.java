@@ -67,6 +67,7 @@ public class CourseService {
         course.setDescription(request.getDescription());
         course.setCategory(request.getCategory());
         course.setLevel(request.getLevel());
+        course.setThumbnailUrl(request.getThumbnailUrl());
         course.setPublished(request.isPublished());
         course.setInstructor(instructor);
 
@@ -84,6 +85,7 @@ public class CourseService {
         course.setDescription(request.getDescription());
         course.setCategory(request.getCategory());
         course.setLevel(request.getLevel());
+        course.setThumbnailUrl(request.getThumbnailUrl());
         course.setPublished(request.isPublished());
 
         return toResponse(courseRepository.save(course));
@@ -192,6 +194,7 @@ public class CourseService {
                 .id(course.getId())
                 .title(course.getTitle())
                 .description(course.getDescription())
+                .thumbnailUrl(course.getThumbnailUrl())
                 .category(course.getCategory())
                 .level(course.getLevel())
                 .published(course.isPublished())

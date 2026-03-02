@@ -14,6 +14,7 @@ public class CourseResponse {
     private UUID id;
     private String title;
     private String description;
+    private String thumbnailUrl;
     private String category;
     private String level;
     private boolean published;

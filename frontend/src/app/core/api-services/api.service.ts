@@ -446,11 +446,20 @@ export class ApiService {
 
   private toCoursePayload(data: Partial<Course>): Record<string, unknown> {
     const isPublished = data.published ?? data.status === 'PUBLISHED';
+    const thumbnailUrl =
+      data.thumbnailUrl ??
+      (data as any).thumbnail ??
+      (data as any).imageUrl ??
+      (data as any).coverImageUrl ??
+      (data as any).coverUrl ??
+      (data as any).bannerUrl;
+
     return {
       title: data.title,
       description: data.description,
       category: data.category,
       level: data.level,
+      thumbnailUrl,
       published: Boolean(isPublished)
     };
   }
@@ -483,11 +492,20 @@ export class ApiService {
 
   private mapCourse(course: Course): Course {
     const isPublished = course.published ?? course.status === 'PUBLISHED';
+    const mappedThumbnail =
+      course.thumbnailUrl ??
+      (course as any).thumbnail ??
+      (course as any).imageUrl ??
+      (course as any).coverImageUrl ??
+      (course as any).coverUrl ??
+      (course as any).bannerUrl;
+
     return {
       ...course,
       status: isPublished ? 'PUBLISHED' : (course.status ?? 'DRAFT'),
       published: Boolean(isPublished),
-      price: course.price ?? 0
+      price: course.price ?? 0,
+      thumbnailUrl: mappedThumbnail
     };
   }
 

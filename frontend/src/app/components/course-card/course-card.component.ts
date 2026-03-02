@@ -17,6 +17,7 @@ import { Course, Enrollment } from '../../core/models';
       <!-- Thumbnail -->
       <div class="course-card__thumb">
         <img [src]="course.thumbnailUrl || 'assets/images/course-placeholder.jpg'"
+             (error)="onImageError($event)"
              [alt]="course.title" loading="lazy">
         <div *ngIf="enrollment" class="course-card__progress-overlay">
           <div class="progress-bar-wrapper">
@@ -214,5 +215,12 @@ export class CourseCardComponent {
   formatDuration(minutes: number): string {
     if (minutes < 60) return `${minutes}m`;
     return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+  }
+
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement | null;
+    if (img) {
+      img.src = 'assets/images/course-placeholder.jpg';
+    }
   }
 }
