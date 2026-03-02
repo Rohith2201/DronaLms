@@ -1,0 +1,272 @@
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+// ─── Header ────────────────────────────────────────────────
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+
+  h2 { margin-bottom: 4px; font-size: 1.6rem; }
+  p  { color: var(--text-secondary); }
+}
+
+// ─── Continue Learning Card ─────────────────────────────────
+.continue-card {
+  position: relative;
+  background: var(--gradient-hero);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8) var(--space-8);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  min-height: 180px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: 200px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(168,85,247,.25) 0%, transparent 60%);
+    pointer-events: none;
+  }
+}
+
+.continue-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  z-index: 1;
+  flex: 1;
+}
+
+.continue-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,.15);
+  color: rgba(255,255,255,.9);
+  border-radius: var(--radius-full);
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+  width: fit-content;
+
+  mat-icon { font-size: 14px; width: 14px; height: 14px; }
+}
+
+.continue-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: white;
+  max-width: 500px;
+  line-height: 1.25;
+}
+
+.continue-meta {
+  color: rgba(255,255,255,.7);
+  font-size: 13px;
+}
+
+.continue-progress {
+  max-width: 300px;
+  .progress-bar-wrapper { background: rgba(255,255,255,.2); }
+  .progress-fill { background: white; }
+}
+
+.continue-card__thumb {
+  width: 220px;
+  height: 130px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-lg);
+  z-index: 1;
+
+  img { width: 100%; height: 100%; object-fit: cover; }
+}
+
+// ─── Stats Grid ─────────────────────────────────────────────
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-5);
+}
+
+// ─── Streak Banner ──────────────────────────────────────────
+.streak-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  background: linear-gradient(135deg, rgba(245,158,11,.12), rgba(245,158,11,.04));
+  border: 1px solid rgba(245,158,11,.2);
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-5);
+
+  .streak-icon { font-size: 32px; }
+
+  .streak-value {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--warning);
+    display: block;
+  }
+
+  .streak-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+}
+
+// ─── Dashboard Grid ─────────────────────────────────────────
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.charts-column, .activity-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+// ─── Chart Card ─────────────────────────────────────────────
+.chart-card {
+  .chart-container { padding: var(--space-2) 0; }
+}
+
+// ─── Activity List ──────────────────────────────────────────
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-muted);
+
+  &:last-child { border-bottom: none; }
+}
+
+.activity-icon {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
+  &.icon-lesson_completed   { background: rgba(16,185,129,.12); mat-icon { color: var(--success); }}
+  &.icon-quiz_passed        { background: rgba(92,107,192,.12); mat-icon { color: var(--primary); }}
+  &.icon-course_completed   { background: rgba(168,85,247,.12); mat-icon { color: var(--accent);  }}
+  &.icon-certificate_issued { background: rgba(245,158,11,.12); mat-icon { color: var(--warning); }}
+}
+
+.activity-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.activity-desc {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.activity-time {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.empty-state {
+  text-align: center;
+  padding: var(--space-8);
+  color: var(--text-muted);
+
+  mat-icon { font-size: 48px; display: block; margin-bottom: var(--space-2); opacity: 0.3; }
+  p { font-size: 14px; }
+}
+
+// ─── Enrollments List ───────────────────────────────────────
+.enrollment-list { display: flex; flex-direction: column; }
+
+.enrollment-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+
+  &:last-child { border-bottom: none; }
+  &:hover { background: var(--bg-hover); padding-left: var(--space-2); }
+}
+
+.enrollment-thumb {
+  width: 48px; height: 36px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.enrollment-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.enrollment-title {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.enrollment-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+
+  .progress-bar-wrapper { flex: 1; height: 4px; }
+  .progress-label { font-size: 11px; color: var(--text-muted); min-width: 28px; }
+}
+
+.arrow-icon { color: var(--text-muted); font-size: 20px; }
+
+// ─── Responsive ─────────────────────────────────────────────
+@media (max-width: 1200px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .dashboard-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .continue-card__thumb { display: none; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr; }
+}

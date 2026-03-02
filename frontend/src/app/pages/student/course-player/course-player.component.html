@@ -1,0 +1,145 @@
+<!-- Course Player — Full‑screen Immersive Layout -->
+<div class="player-shell" *ngIf="!loading; else loadingTpl">
+
+  <!-- ── Top Bar ──────────────────────────────────────── -->
+  <header class="player-topbar">
+    <button mat-icon-button routerLink="/student/courses" class="back-btn" matTooltip="Back to courses">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+
+    <div class="player-course-title">{{ course?.title }}</div>
+
+    <!-- Course Progress -->
+    <div class="player-progress">
+      <div class="progress-bar-wrapper" style="width:200px">
+        <div class="progress-fill" [style.width.%]="progressPercent"></div>
+      </div>
+      <span class="progress-pct">{{ progressPercent | number:'1.0-0' }}% complete</span>
+    </div>
+
+    <!-- Right Panel Tabs -->
+    <div class="player-panel-tabs">
+      <button mat-button [class.active]="rightPanel === 'ai'"
+              (click)="rightPanel = 'ai'">
+        <mat-icon>smart_toy</mat-icon> AI Tutor
+      </button>
+      <button mat-button [class.active]="rightPanel === 'notes'"
+              (click)="rightPanel = 'notes'">
+        <mat-icon>notes</mat-icon> Notes
+      </button>
+      <button mat-button [class.active]="rightPanel === 'resources'"
+              (click)="rightPanel = 'resources'">
+        <mat-icon>attachment</mat-icon> Resources
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Player Body ──────────────────────────────────── -->
+  <div class="player-body">
+
+    <!-- LEFT: Module / Lesson Sidebar -->
+    <aside class="player-sidebar" [class.collapsed]="!sidebarOpen()">
+      <div class="sidebar-toggle-btn" (click)="toggleSidebar()">
+        <mat-icon>{{ sidebarOpen() ? 'chevron_left' : 'chevron_right' }}</mat-icon>
+      </div>
+
+      <div class="sidebar-header" *ngIf="sidebarOpen()">
+        <span class="sidebar-heading">Course Content</span>
+        <span class="lesson-count">
+          {{ enrollment?.completedLessons || 0 }} / {{ enrollment?.totalLessons || 0 }} lessons
+        </span>
+      </div>
+
+      <div class="sidebar-modules scroll-y" *ngIf="sidebarOpen()">
+        <app-module-progress
+          *ngFor="let mod of course?.modules; trackBy: trackById"
+          [module]="mod"
+          [activeLessonId]="activeLesson?.id"
+          (onLessonSelect)="loadLesson($event)">
+        </app-module-progress>
+      </div>
+    </aside>
+
+    <!-- CENTER: Lesson Viewer -->
+    <main class="player-main">
+      <!-- Lesson Viewer -->
+      <app-lesson-viewer
+        *ngIf="activeLesson"
+        [lesson]="activeLesson"
+        [startAt]="enrollment?.lastWatchedSeconds || 0"
+        (videoProgress)="onVideoProgress($event)"
+        (lessonComplete)="onLessonComplete()">
+      </app-lesson-viewer>
+
+      <!-- Lesson Info & Navigation -->
+      <div class="lesson-footer" *ngIf="activeLesson">
+        <div class="lesson-nav">
+          <button mat-stroked-button [disabled]="!hasPrev()" (click)="goToPrev()">
+            <mat-icon>navigate_before</mat-icon> Previous
+          </button>
+          <div class="lesson-info">
+            <h3 class="lesson-title-main">{{ activeLesson.title }}</h3>
+            <div class="lesson-badges">
+              <span class="badge badge-primary">{{ activeLesson.type }}</span>
+              <span class="badge badge-muted">{{ activeLesson.duration | number:'1.0-0' }}s</span>
+              <span *ngIf="activeLesson.isCompleted" class="badge badge-success">
+                <mat-icon>check</mat-icon> Completed
+              </span>
+            </div>
+          </div>
+          <button mat-flat-button color="primary"
+                  *ngIf="!activeLesson.isCompleted"
+                  (click)="onLessonComplete()">
+            Mark Complete <mat-icon>check_circle</mat-icon>
+          </button>
+          <button mat-flat-button color="accent"
+                  [disabled]="!hasNext()" (click)="goToNext()">
+            Next <mat-icon>navigate_next</mat-icon>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- RIGHT: AI / Notes / Resources -->
+    <aside class="player-right-panel">
+      <app-ai-chat-widget
+        *ngIf="rightPanel === 'ai'"
+        [courseId]="course?.id"
+        [lessonId]="activeLesson?.id">
+      </app-ai-chat-widget>
+
+      <div class="notes-panel" *ngIf="rightPanel === 'notes'">
+        <div class="notes-header">
+          <mat-icon>edit_note</mat-icon>
+          <h4>My Notes</h4>
+        </div>
+        <textarea class="notes-textarea"
+                  placeholder="Take notes for this lesson..."></textarea>
+      </div>
+
+      <div class="resources-panel" *ngIf="rightPanel === 'resources'">
+        <div class="resources-header">
+          <mat-icon>folder_open</mat-icon>
+          <h4>Resources</h4>
+        </div>
+        <div *ngIf="activeLesson?.resources?.length; else noResources" class="resources-list">
+          <a *ngFor="let r of activeLesson?.resources"
+             [href]="r.url" target="_blank" rel="noopener" class="resource-item">
+            <mat-icon>{{ r.type === 'PDF' ? 'picture_as_pdf' : r.type === 'CODE' ? 'code' : 'link' }}</mat-icon>
+            <span>{{ r.title }}</span>
+          </a>
+        </div>
+        <ng-template #noResources>
+          <p class="no-resources">No resources for this lesson</p>
+        </ng-template>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<ng-template #loadingTpl>
+  <div class="player-loading">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Loading course...</p>
+  </div>
+</ng-template>

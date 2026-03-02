@@ -1,0 +1,161 @@
+<div class="dashboard page-enter">
+
+  <!-- ── Header ──────────────────────────────────────────── -->
+  <div class="dashboard-header">
+    <div>
+      <h2>Good morning, {{ (auth.currentUser$ | async)?.name?.split(' ')?.[0] }} 👋</h2>
+      <p>Here's your learning progress at a glance</p>
+    </div>
+    <div class="header-actions">
+      <button mat-stroked-button routerLink="/courses">
+        <mat-icon>explore</mat-icon> Browse Courses
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Continue Learning Hero ───────────────────────────── -->
+  <div *ngIf="continueEnrollment" class="continue-card">
+    <div class="continue-card__bg"></div>
+    <div class="continue-card__content">
+      <div class="continue-tag"><mat-icon>play_circle</mat-icon> Continue Learning</div>
+      <h3 class="continue-title">{{ continueEnrollment.course?.title }}</h3>
+      <p class="continue-meta">
+        {{ continueEnrollment.completedLessons }} / {{ continueEnrollment.totalLessons }} lessons &nbsp;·&nbsp;
+        {{ continueEnrollment.progressPercent | number:'1.0-0' }}% complete
+      </p>
+      <div class="continue-progress">
+        <div class="progress-bar-wrapper">
+          <div class="progress-fill" [style.width.%]="continueEnrollment.progressPercent"></div>
+        </div>
+      </div>
+      <button mat-raised-button [routerLink]="['/learn', continueEnrollment.courseId]" class="btn-gradient">
+        <mat-icon>play_arrow</mat-icon> Resume
+      </button>
+    </div>
+    <div class="continue-card__thumb">
+      <img [src]="continueEnrollment.course?.thumbnailUrl || 'assets/images/course-placeholder.jpg'"
+           [alt]="continueEnrollment.course?.title">
+    </div>
+  </div>
+
+  <!-- ── Skeleton: loading ────────────────────────────────── -->
+  <div *ngIf="loading" class="stats-grid">
+    <app-skeleton-loader *ngFor="let i of [1,2,3,4]" type="stats"></app-skeleton-loader>
+  </div>
+
+  <!-- ── Stats Cards ──────────────────────────────────────── -->
+  <div *ngIf="!loading" class="stats-grid">
+    <app-stats-card *ngFor="let card of statsCards" [data]="card"></app-stats-card>
+  </div>
+
+  <!-- ── Learning Streak ──────────────────────────────────── -->
+  <div *ngIf="dashboard" class="streak-banner">
+    <div class="streak-icon">🔥</div>
+    <div>
+      <span class="streak-value">{{ dashboard.learningStreak }} day streak!</span>
+      <span class="streak-label">Keep it up — you're on a roll!</span>
+    </div>
+  </div>
+
+  <!-- ── Main Grid ────────────────────────────────────────── -->
+  <div class="dashboard-grid">
+
+    <!-- Charts Column -->
+    <div class="charts-column">
+
+      <!-- Completion Status -->
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Course Completion</mat-card-title>
+          <mat-card-subtitle>Real-time enrollment status</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chart-container" style="height:240px">
+            <canvas baseChart
+              [data]="completionChartData"
+              type="doughnut"
+              [options]="completionChartOptions">
+            </canvas>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Weekly Activity -->
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Weekly Activity</mat-card-title>
+          <mat-card-subtitle>Minutes learned per day</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chart-container" style="height:200px">
+            <canvas baseChart
+              [data]="activityChartData"
+              type="line"
+              [options]="activityChartOptions">
+            </canvas>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Activity & Courses Column -->
+    <div class="activity-column">
+
+      <!-- Recent Activity -->
+      <mat-card class="activity-card">
+        <mat-card-header>
+          <mat-card-title>Recent Activity</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div *ngIf="loading">
+            <app-skeleton-loader type="row" [count]="5"></app-skeleton-loader>
+          </div>
+          <div class="activity-list" *ngIf="!loading">
+            <div *ngFor="let item of dashboard?.recentActivity; trackBy: trackByActivity"
+                 class="activity-item">
+              <div class="activity-icon" [class]="'icon-' + item.type.toLowerCase()">
+                <mat-icon>{{ getActivityIcon(item.type) }}</mat-icon>
+              </div>
+              <div class="activity-content">
+                <span class="activity-desc">{{ item.description }}</span>
+                <span class="activity-time">{{ item.timestamp | date:'MMM d, h:mm a' }}</span>
+              </div>
+            </div>
+            <div *ngIf="!dashboard?.recentActivity?.length" class="empty-state">
+              <mat-icon>history</mat-icon>
+              <p>No recent activity</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Active Enrollments -->
+      <mat-card class="enrollments-card">
+        <mat-card-header>
+          <mat-card-title>Active Courses</mat-card-title>
+          <button mat-button color="primary" routerLink="/student/courses">View All</button>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="enrollment-list">
+            <div *ngFor="let e of dashboard?.enrolledCourses?.slice(0,5); trackBy: trackById"
+                 class="enrollment-item"
+                 [routerLink]="['/learn', e.courseId]">
+              <img [src]="e.course?.thumbnailUrl || 'assets/images/course-placeholder.jpg'"
+                   class="enrollment-thumb" [alt]="e.course?.title">
+              <div class="enrollment-info">
+                <span class="enrollment-title">{{ e.course?.title }}</span>
+                <div class="enrollment-progress">
+                  <div class="progress-bar-wrapper">
+                    <div class="progress-fill" [style.width.%]="e.progressPercent"></div>
+                  </div>
+                  <span class="progress-label">{{ e.progressPercent | number:'1.0-0' }}%</span>
+                </div>
+              </div>
+              <mat-icon class="arrow-icon">chevron_right</mat-icon>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>
