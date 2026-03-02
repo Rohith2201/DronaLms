@@ -23,12 +23,15 @@ spring:
     enabled: true
     baseline-on-migrate: true
 
+
 logging:
   level:
     root: INFO
     com.drona.lms: DEBUG
 
 app:
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:4200}
   security:
     jwt:
       secret: ${JWT_SECRET:change-me-to-a-very-long-secure-secret-key-at-least-32-bytes}

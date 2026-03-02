@@ -40,7 +40,7 @@ public class CertificateService {
     private final EnrollmentRepository enrollmentRepository;
     private final CourseAccessService courseAccessService;
     
-    @Value("${app.frontend.url:http://localhost:4200}")
+    @Value("${app.frontend.url}")
     private String frontendUrl;
 
     @Transactional
