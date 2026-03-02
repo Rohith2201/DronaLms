@@ -2,6 +2,10 @@
 
 Spring Boot 3.4 + Java 17 backend for Drona LMS.
 
+## API Reference
+
+- Complete endpoint list: `ENDPOINTS.md`
+
 ## Implemented in this phase
 
 - Production-ready package structure (layered architecture)

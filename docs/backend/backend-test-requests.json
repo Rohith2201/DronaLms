@@ -1,0 +1,223 @@
+{
+  "baseUrl": "http://localhost:8080",
+  "apiPrefix": "/api/v1",
+  "notes": [
+    "Replace UUID placeholders before running requests",
+    "Set Authorization header with Bearer token for protected routes",
+    "Use role-specific tokens (ADMIN/INSTRUCTOR/STUDENT) depending on endpoint"
+  ],
+  "requests": [
+    {
+      "name": "Register",
+      "method": "POST",
+      "path": "/api/v1/auth/register",
+      "authRequired": false,
+      "payload": {
+        "email": "student1@example.com",
+        "password": "Password@123",
+        "firstName": "Student",
+        "lastName": "One",
+        "role": "STUDENT"
+      }
+    },
+    {
+      "name": "Login",
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "authRequired": false,
+      "payload": {
+        "email": "student1@example.com",
+        "password": "Password@123"
+      }
+    },
+    {
+      "name": "Create Course",
+      "method": "POST",
+      "path": "/api/v1/courses",
+      "authRequired": true,
+      "role": "INSTRUCTOR|ADMIN",
+      "payload": {
+        "title": "Java Backend Mastery",
+        "description": "Complete Spring Boot course",
+        "category": "Programming",
+        "level": "BEGINNER",
+        "thumbnailUrl": "https://images.example.com/course-java.jpg",
+        "published": true
+      }
+    },
+    {
+      "name": "Update Course",
+      "method": "PUT",
+      "path": "/api/v1/courses/{courseId}",
+      "authRequired": true,
+      "role": "INSTRUCTOR|ADMIN",
+      "payload": {
+        "title": "Java Backend Mastery - Updated",
+        "description": "Updated description",
+        "category": "Programming",
+        "level": "INTERMEDIATE",
+        "thumbnailUrl": "https://images.example.com/course-java-updated.jpg",
+        "published": true
+      }
+    },
+    {
+      "name": "Create Module",
+      "method": "POST",
+      "path": "/api/v1/modules/course/{courseId}",
+      "authRequired": true,
+      "role": "INSTRUCTOR|ADMIN",
+      "payload": {
+        "title": "Spring Boot Basics",
+        "description": "Core fundamentals",
+        "position": 1
+      }
+    },
+    {
+      "name": "Create Video Lesson",
+      "method": "POST",
+      "path": "/api/v1/lessons/module/{moduleId}",
+      "authRequired": true,
+      "role": "INSTRUCTOR|ADMIN",
+      "payload": {
+        "title": "Introduction to REST APIs",
+        "contentType": "VIDEO",
+        "videoUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "pdfUrl": null,
+        "contentText": null,
+        "durationSeconds": 600,
+        "position": 1
+      }
+    },
+    {
+      "name": "Create PDF Lesson",
+      "method": "POST",
+      "path": "/api/v1/lessons/module/{moduleId}",
+      "authRequired": true,
+      "role": "INSTRUCTOR|ADMIN",
+      "payload": {
+        "title": "REST API Notes",
+        "contentType": "PDF",
+        "videoUrl": null,
+        "pdfUrl": "https://example.com/rest-api-notes.pdf",
+        "contentText": null,
+        "durationSeconds": 300,
+        "position": 2
+      }
+    },
+    {
+      "name": "Create Text Lesson",
+      "method": "POST",
+      "path": "/api/v1/lessons/module/{moduleId}",
+      "authRequired": true,
+      "role": "INSTRUCTOR|ADMIN",
+      "payload": {
+        "title": "HTTP Methods",
+        "contentType": "TEXT",
+        "videoUrl": null,
+        "pdfUrl": null,
+        "contentText": "GET, POST, PUT, DELETE explained",
+        "durationSeconds": 180,
+        "position": 3
+      }
+    },
+    {
+      "name": "Create Quiz",
+      "method": "POST",
+      "path": "/api/v1/quizzes/module/{moduleId}",
+      "authRequired": true,
+      "role": "INSTRUCTOR|ADMIN",
+      "payload": {
+        "title": "Module 1 Quiz",
+        "description": "Covers basics",
+        "maxScore": 100,
+        "timeLimitMinutes": 30,
+        "passingScore": 60,
+        "generatedByAi": false
+      }
+    },
+    {
+      "name": "Create MCQ Question",
+      "method": "POST",
+      "path": "/api/v1/questions/quiz/{quizId}",
+      "authRequired": true,
+      "role": "INSTRUCTOR|ADMIN",
+      "payload": {
+        "questionText": "Which HTTP method is idempotent?",
+        "questionType": "MULTIPLE_CHOICE",
+        "optionsJson": "[\"POST\",\"GET\",\"PATCH\",\"CONNECT\"]",
+        "correctAnswer": "GET",
+        "points": 10,
+        "position": 1
+      }
+    },
+    {
+      "name": "Enroll in Course",
+      "method": "POST",
+      "path": "/api/v1/enrollments",
+      "authRequired": true,
+      "role": "STUDENT",
+      "payload": {
+        "courseId": "00000000-0000-0000-0000-000000000001"
+      }
+    },
+    {
+      "name": "Update Enrollment Progress",
+      "method": "PATCH",
+      "path": "/api/v1/enrollments/{enrollmentId}/progress",
+      "authRequired": true,
+      "role": "STUDENT|INSTRUCTOR|ADMIN",
+      "payload": {
+        "progressPercent": 75.5
+      }
+    },
+    {
+      "name": "Submit Quiz",
+      "method": "POST",
+      "path": "/api/v1/submissions",
+      "authRequired": true,
+      "role": "STUDENT",
+      "payload": {
+        "submissionType": "QUIZ",
+        "quizId": "00000000-0000-0000-0000-000000000002",
+        "title": "Module 1 Quiz Attempt",
+        "answerJson": "{\"q1\":\"GET\",\"q2\":\"201\"}"
+      }
+    },
+    {
+      "name": "Grade Submission",
+      "method": "PATCH",
+      "path": "/api/v1/submissions/{submissionId}/grade",
+      "authRequired": true,
+      "role": "INSTRUCTOR|ADMIN",
+      "payload": {
+        "score": 88.5,
+        "feedback": "Good understanding, revise status codes"
+      }
+    },
+    {
+      "name": "Issue Certificate",
+      "method": "POST",
+      "path": "/api/v1/certificates/issue",
+      "authRequired": true,
+      "role": "STUDENT|INSTRUCTOR|ADMIN",
+      "payload": {
+        "enrollmentId": "00000000-0000-0000-0000-000000000003",
+        "fileUrl": "https://example.com/certificates/cert-001.pdf"
+      }
+    },
+    {
+      "name": "Verify Certificate (Public)",
+      "method": "GET",
+      "path": "/api/v1/certificates/public/verify/{certificateNumber}",
+      "authRequired": false,
+      "payload": null
+    },
+    {
+      "name": "Download Certificate PDF",
+      "method": "GET",
+      "path": "/api/v1/certificates/{certificateId}/pdf",
+      "authRequired": false,
+      "payload": null
+    }
+  ]
+}
