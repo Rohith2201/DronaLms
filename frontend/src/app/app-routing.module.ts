@@ -12,6 +12,12 @@ const routes: Routes = [
     pathMatch: 'full'
   },
 
+  // Public certificate verification
+  {
+    path: 'verify-certificate',
+    loadComponent: () => import('./pages/public/verify-certificate/verify-certificate.component').then(m => m.VerifyCertificateComponent)
+  },
+
   // Auth layout (guest only — login/register)
   {
     path: 'auth',

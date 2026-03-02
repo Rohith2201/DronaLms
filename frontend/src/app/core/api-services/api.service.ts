@@ -281,6 +281,16 @@ export class ApiService {
     return this.issueCertificate(enrollmentId);
   }
 
+  downloadCertificatePdf(certificateId: EntityId): Observable<Blob> {
+    return this.http.get(`${this.base}/certificates/${certificateId}/pdf`, { responseType: 'blob' });
+  }
+
+  verifyCertificate(certificateNumber: string): Observable<Certificate> {
+    return this.http.get<Certificate>(`${this.base}/certificates/public/verify/${certificateNumber}`).pipe(
+      map(c => this.mapCertificate(c))
+    );
+  }
+
   getStudentDashboard(): Observable<StudentDashboard> {
     return forkJoin({
       enrollments: this.getMyEnrollments(),

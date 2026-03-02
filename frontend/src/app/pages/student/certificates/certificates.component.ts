@@ -56,10 +56,10 @@ import { Certificate, CertificateEligibility, EntityId } from '../../../core/mod
 
             <!-- Actions -->
             <div class="cert-actions">
-              <a mat-flat-button color="primary" [href]="cert.pdfUrl" target="_blank" *ngIf="cert.pdfUrl">
+              <button mat-flat-button color="primary" (click)="downloadPdf(cert)">
                 <mat-icon>download</mat-icon> Download PDF
-              </a>
-              <button mat-stroked-button (click)="copyVerifyLink(cert.verificationUrl ?? '')" matTooltip="Copy verification link">
+              </button>
+              <button mat-stroked-button (click)="openVerifyLink(cert)" matTooltip="Open verification page">
                 <mat-icon>verified</mat-icon> Verify
               </button>
               <button mat-icon-button (click)="shareOnLinkedIn(cert)" matTooltip="Share on LinkedIn">
@@ -258,8 +258,23 @@ export class CertificatesComponent implements OnInit, OnDestroy {
     });
   }
 
-  copyVerifyLink(url: string): void {
-    navigator.clipboard.writeText(url).then(() => {});
+  downloadPdf(cert: Certificate): void {
+    this.api.downloadCertificatePdf(cert.id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (blob) => {
+        const fileName = `${cert.certificateNumber || 'certificate'}.pdf`;
+        const objectUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = objectUrl;
+        link.download = fileName;
+        link.click();
+        URL.revokeObjectURL(objectUrl);
+      }
+    });
+  }
+
+  openVerifyLink(cert: Certificate): void {
+    const verifyUrl = cert.verificationUrl || `/verify-certificate?cert=${encodeURIComponent(cert.certificateNumber || '')}`;
+    window.open(verifyUrl, '_blank');
   }
 
   shareOnLinkedIn(cert: Certificate): void {

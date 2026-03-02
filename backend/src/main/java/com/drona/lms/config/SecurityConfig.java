@@ -48,6 +48,7 @@ public class SecurityConfig {
                         // ✅ Public endpoints
                         .requestMatchers(
                                 "/api/v1/auth/**",
+                                "/api/v1/certificates/public/**",
                                 "/actuator/health",
                                 "/ws/**")
                         .permitAll()
@@ -65,6 +66,9 @@ public class SecurityConfig {
                         .hasRole("STUDENT")
 
                         // ✅ Shared LMS APIs
+                        .requestMatchers(HttpMethod.GET, "/api/v1/certificates/*/pdf")
+                        .permitAll()
+
                         .requestMatchers("/api/v1/certificates/**")
                         .hasAnyRole("ADMIN", "INSTRUCTOR", "STUDENT")
 

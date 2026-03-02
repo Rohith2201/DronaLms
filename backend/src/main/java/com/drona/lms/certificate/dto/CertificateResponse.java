@@ -21,4 +21,8 @@ public class CertificateResponse {
     private String studentName;
     private String courseTitle;
     private Instant completionDate;
+    
+    // URLs for public access
+    private String verificationUrl;
+    private String pdfUrl;
 }

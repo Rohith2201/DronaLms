@@ -12,4 +12,6 @@ public interface CertificateRepository extends JpaRepository<Certificate, UUID> 
     Optional<Certificate> findByEnrollmentId(UUID enrollmentId);
 
     Page<Certificate> findByEnrollmentStudentEmail(String studentEmail, Pageable pageable);
+    
+    Optional<Certificate> findByCertificateNumber(String certificateNumber);
 }

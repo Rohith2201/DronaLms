@@ -8,7 +8,9 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -49,5 +51,29 @@ public class CertificateController {
     public ResponseEntity<Page<CertificateResponse>> myCertificates(@AuthenticationPrincipal UserDetails principal,
                                                                     Pageable pageable) {
         return ResponseEntity.ok(certificateService.myCertificates(principal.getUsername(), pageable));
+    }
+    
+    /**
+     * Public endpoint to verify certificate by certificate number
+     */
+    @GetMapping("/public/verify/{certificateNumber}")
+    public ResponseEntity<CertificateResponse> verifyCertificate(@PathVariable String certificateNumber) {
+        return ResponseEntity.ok(certificateService.verifyCertificate(certificateNumber));
+    }
+    
+    /**
+     * Download certificate as PDF
+     */
+    @GetMapping("/{certificateId}/pdf")
+    public ResponseEntity<byte[]> downloadPdf(@PathVariable UUID certificateId) {
+        byte[] pdfBytes = certificateService.generatePdf(certificateId);
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", "certificate.pdf");
+        
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(pdfBytes);
     }
 }
