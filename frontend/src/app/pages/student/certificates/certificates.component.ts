@@ -44,9 +44,13 @@ import { Certificate, CertificateEligibility, EntityId } from '../../../core/mod
               <div class="cert-inner">
                 <mat-icon class="cert-seal">workspace_premium</mat-icon>
                 <div class="cert-label">Certificate of Completion</div>
+                <div class="cert-student-name" *ngIf="cert.studentName">{{ cert.studentName }}</div>
+                <div class="cert-completion-text">has successfully completed</div>
                 <div class="cert-course">{{ cert.courseTitle }}</div>
-                <div class="cert-date">Issued {{ cert.issuedAt | date:'longDate' }}</div>
-                <div class="cert-id">ID: {{ cert.certificateNumber }}</div>
+                <div class="cert-date">
+                  {{ cert.completionDate ? (cert.completionDate | date:'longDate') : (cert.issuedAt | date:'longDate') }}
+                </div>
+                <div class="cert-id">Certificate ID: {{ cert.certificateNumber }}</div>
               </div>
             </div>
 
@@ -177,8 +181,10 @@ import { Certificate, CertificateEligibility, EntityId } from '../../../core/mod
     }
 
     .cert-label { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; opacity: 0.7; margin-bottom: var(--space-2); }
-    .cert-course { font-size: 18px; font-weight: 700; margin-bottom: var(--space-2); line-height: 1.3; }
-    .cert-date { font-size: 13px; opacity: 0.8; margin-bottom: var(--space-1); }
+    .cert-student-name { font-size: 22px; font-weight: 700; margin-bottom: var(--space-2); line-height: 1.2; color: #fbbf24; }
+    .cert-completion-text { font-size: 12px; opacity: 0.7; margin-bottom: var(--space-2); font-style: italic; }
+    .cert-course { font-size: 18px; font-weight: 700; margin-bottom: var(--space-3); line-height: 1.3; }
+    .cert-date { font-size: 13px; opacity: 0.8; margin-bottom: var(--space-2); }
     .cert-id { font-size: 11px; opacity: 0.5; font-family: 'JetBrains Mono', monospace; }
 
     .cert-actions {

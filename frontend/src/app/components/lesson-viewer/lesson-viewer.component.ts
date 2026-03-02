@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { VideoPlayerComponent } from '../video-player/video-player.component';
@@ -13,9 +14,24 @@ import { Lesson } from '../../core/models';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="lesson-viewer">
-      <!-- VIDEO -->
+      <!-- VIDEO - Embedded (YouTube, Vimeo, etc.) -->
+      <div *ngIf="lesson?.type === 'VIDEO' && isEmbedVideo" class="video-embed">
+        <iframe [src]="videoEmbedUrl" 
+                class="video-iframe"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen>
+        </iframe>
+        <div class="video-actions">
+          <button mat-flat-button color="primary" (click)="onMarkComplete()">
+            <mat-icon>check_circle</mat-icon> Mark as Complete
+          </button>
+        </div>
+      </div>
+
+      <!-- VIDEO - Direct File (mp4, webm, etc.) -->
       <app-video-player
-        *ngIf="lesson?.type === 'VIDEO'"
+        *ngIf="lesson?.type === 'VIDEO' && !isEmbedVideo"
         [lesson]="lesson"
         [startAt]="startAt"
         (videoProgress)="videoProgress.emit($event)"
@@ -24,9 +40,9 @@ import { Lesson } from '../../core/models';
 
       <!-- TEXT / ARTICLE -->
       <div *ngIf="lesson?.type === 'TEXT'" class="text-lesson scroll-y">
-        <div class="text-lesson-content" [innerHTML]="lesson?.textContent"></div>
+        <div class="text-lesson-content" [innerHTML]="lesson?.contentText || lesson?.textContent"></div>
         <div class="text-lesson-actions">
-          <button mat-flat-button color="primary" (click)="lessonComplete.emit()">
+          <button mat-flat-button color="primary" (click)="onMarkComplete()">
             <mat-icon>check_circle</mat-icon> Mark as Complete
           </button>
         </div>
@@ -34,9 +50,9 @@ import { Lesson } from '../../core/models';
 
       <!-- PDF -->
       <div *ngIf="lesson?.type === 'PDF'" class="pdf-lesson">
-        <iframe [src]="lesson?.contentUrl" class="pdf-frame"></iframe>
+        <iframe *ngIf="pdfUrl" [src]="pdfUrl" class="pdf-frame"></iframe>
         <div class="pdf-actions">
-          <button mat-flat-button color="primary" (click)="lessonComplete.emit()">
+          <button mat-flat-button color="primary" (click)="onMarkComplete()">
             <mat-icon>check_circle</mat-icon> Mark as Complete
           </button>
         </div>
@@ -55,6 +71,27 @@ import { Lesson } from '../../core/models';
   `,
   styles: [`
     .lesson-viewer { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #000; }
+
+    .video-embed {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #000;
+    }
+
+    .video-iframe {
+      flex: 1;
+      width: 100%;
+      border: none;
+      aspect-ratio: 16/9;
+      max-height: calc(100vh - 56px - 80px);
+    }
+
+    .video-actions {
+      padding: var(--space-4);
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border);
+    }
 
     .text-lesson {
       flex: 1;
@@ -123,4 +160,48 @@ export class LessonViewerComponent {
   @Input() startAt = 0;
   @Output() videoProgress = new EventEmitter<VideoProgress>();
   @Output() lessonComplete = new EventEmitter<void>();
+
+  constructor(private sanitizer: DomSanitizer) {}
+
+  get isEmbedVideo(): boolean {
+    const url = this.lesson?.contentUrl || '';
+    return url.includes('youtube.com') || 
+           url.includes('youtu.be') || 
+           url.includes('vimeo.com') ||
+           url.includes('embed');
+  }
+
+  get videoEmbedUrl(): SafeResourceUrl | null {
+    const url = this.lesson?.contentUrl || '';
+    if (!url) return null;
+
+    let embedUrl = url;
+
+    // Convert YouTube watch URLs to embed format
+    if (url.includes('youtube.com/watch')) {
+      const videoId = new URL(url).searchParams.get('v');
+      embedUrl = `https://www.youtube.com/embed/${videoId}`;
+    } 
+    // Convert short YouTube URLs to embed format
+    else if (url.includes('youtu.be/')) {
+      const videoId = url.split('youtu.be/')[1].split('?')[0];
+      embedUrl = `https://www.youtube.com/embed/${videoId}`;
+    }
+    // Convert Vimeo URLs to embed format
+    else if (url.includes('vimeo.com') && !url.includes('/video/')) {
+      const videoId = url.split('vimeo.com/')[1].split('?')[0];
+      embedUrl = `https://player.vimeo.com/video/${videoId}`;
+    }
+
+    return this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
+  }
+
+  get pdfUrl(): SafeResourceUrl | null {
+    const url = this.lesson?.contentUrl || (this.lesson as any)?.pdfUrl;
+    return url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
+  }
+
+  onMarkComplete(): void {
+    this.lessonComplete.emit();
+  }
 }

@@ -167,6 +167,9 @@
         <td mat-cell *matCellDef="let course" class="actions-cell">
           <!-- Quick Actions (Desktop) -->
           <div class="quick-actions">
+            <button mat-icon-button matTooltip="Manage Content" (click)="manageContent(course)">
+              <mat-icon>edit_note</mat-icon>
+            </button>
             <button mat-icon-button matTooltip="View Analytics" (click)="viewAnalytics(course)">
               <mat-icon>analytics</mat-icon>
             </button>
@@ -191,6 +194,10 @@
             <button mat-menu-item (click)="viewEnrolledUsers(course)">
               <mat-icon>people</mat-icon>
               <span>Enrolled Users</span>
+            </button>
+            <button mat-menu-item (click)="manageContent(course)">
+              <mat-icon>edit_note</mat-icon>
+              <span>Manage Content</span>
             </button>
             <mat-divider></mat-divider>
             <button mat-menu-item (click)="editCourse(course)">

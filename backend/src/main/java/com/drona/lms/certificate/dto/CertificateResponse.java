@@ -16,4 +16,9 @@ public class CertificateResponse {
     private String certificateNumber;
     private Instant issuedAt;
     private String fileUrl;
+    
+    // Additional fields for certificate display
+    private String studentName;
+    private String courseTitle;
+    private Instant completionDate;
 }

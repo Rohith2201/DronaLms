@@ -8,14 +8,21 @@ import com.drona.lms.course.dto.CourseUpdateRequest;
 import com.drona.lms.course.dto.CourseAnalyticsResponse;
 import com.drona.lms.course.dto.EnrolledUserResponse;
 import com.drona.lms.domain.entity.Course;
+import com.drona.lms.domain.entity.CourseModule;
 import com.drona.lms.domain.entity.Enrollment;
+import com.drona.lms.domain.entity.Lesson;
 import com.drona.lms.domain.repository.CourseRepository;
 import com.drona.lms.domain.repository.EnrollmentRepository;
 import com.drona.lms.domain.repository.UserRepository;
+import com.drona.lms.lesson.dto.LessonResponse;
+import com.drona.lms.module.dto.ModuleResponse;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -175,6 +182,12 @@ public class CourseService {
         // Determine status
         String status = course.isPublished() ? "PUBLISHED" : "DRAFT";
         
+        // Map modules and lessons
+        List<ModuleResponse> modules = course.getModules().stream()
+                .sorted(Comparator.comparing(CourseModule::getPosition))
+                .map(this::toModuleResponse)
+                .collect(Collectors.toList());
+        
         return CourseResponse.builder()
                 .id(course.getId())
                 .title(course.getTitle())
@@ -192,6 +205,38 @@ public class CourseService {
                 .ratingCount(0) // TODO: Get from reviews table
                 .completionRate(completionRate)
                 .status(status)
+                // Course content
+                .modules(modules)
+                .build();
+    }
+    
+    private ModuleResponse toModuleResponse(CourseModule module) {
+        List<LessonResponse> lessons = module.getLessons().stream()
+                .sorted(Comparator.comparing(Lesson::getPosition))
+                .map(this::toLessonResponse)
+                .collect(Collectors.toList());
+        
+        return ModuleResponse.builder()
+                .id(module.getId())
+                .courseId(module.getCourse().getId())
+                .title(module.getTitle())
+                .description(module.getDescription())
+                .position(module.getPosition())
+                .lessons(lessons)
+                .build();
+    }
+    
+    private LessonResponse toLessonResponse(Lesson lesson) {
+        return LessonResponse.builder()
+                .id(lesson.getId())
+                .moduleId(lesson.getModule().getId())
+                .title(lesson.getTitle())
+                .contentType(lesson.getContentType())
+                .videoUrl(lesson.getVideoUrl())
+                .pdfUrl(lesson.getPdfUrl())
+                .contentText(lesson.getContentText())
+                .durationSeconds(lesson.getDurationSeconds())
+                .position(lesson.getPosition())
                 .build();
     }
 }

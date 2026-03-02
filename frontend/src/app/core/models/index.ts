@@ -113,6 +113,9 @@ export interface Lesson {
   type: LessonType;
   contentUrl?: string;
   textContent?: string;
+  contentText?: string;  // Backend returns this field
+  videoUrl?: string;
+  pdfUrl?: string;
   duration: number;           // seconds
   order: number;
   isPreview: boolean;
@@ -211,6 +214,9 @@ export interface Certificate {
   pdfUrl?: string;
   verificationUrl?: string;
   verificationCode?: string;
+  // Certificate display details
+  studentName?: string;
+  completionDate?: string;
 }
 
 export interface CertificateEligibility {

@@ -49,7 +49,11 @@ public class LessonService {
         lesson.setPdfUrl(request.getPdfUrl());
         lesson.setContentText(request.getContentText());
         lesson.setDurationSeconds(request.getDurationSeconds());
-        lesson.setPosition(request.getPosition());
+
+        Integer maxPosition = lessonRepository.findMaxPositionByModuleId(moduleId);
+
+        lesson.setPosition(maxPosition + 1);
+
         return toResponse(lessonRepository.save(lesson));
     }
 
@@ -58,7 +62,8 @@ public class LessonService {
         Lesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Lesson not found: " + lessonId));
 
-        courseAccessService.assertAdminOrCourseInstructor(actorEmail, lesson.getModule().getCourse().getInstructor().getEmail());
+        courseAccessService.assertAdminOrCourseInstructor(actorEmail,
+                lesson.getModule().getCourse().getInstructor().getEmail());
 
         lesson.setTitle(request.getTitle());
         lesson.setContentType(request.getContentType());
@@ -74,7 +79,8 @@ public class LessonService {
     public void delete(UUID lessonId, String actorEmail) {
         Lesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Lesson not found: " + lessonId));
-        courseAccessService.assertAdminOrCourseInstructor(actorEmail, lesson.getModule().getCourse().getInstructor().getEmail());
+        courseAccessService.assertAdminOrCourseInstructor(actorEmail,
+                lesson.getModule().getCourse().getInstructor().getEmail());
         lessonRepository.delete(lesson);
     }
 

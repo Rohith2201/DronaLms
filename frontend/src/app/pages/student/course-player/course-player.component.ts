@@ -86,12 +86,25 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
 
   onLessonComplete(): void {
     if (!this.enrollment || !this.activeLesson) return;
-    this.progress.markComplete(this.enrollment.id, this.activeLesson.id).subscribe(updated => {
-      this.enrollment = updated;
-      this.notif.success('Lesson completed! 🎉', 'Keep going!');
+    this.progress.markComplete(this.enrollment.id, this.activeLesson.id).subscribe({
+      next: (updated) => {
+        this.enrollment = updated;
+        
+        // Update the active lesson's completed status
+        if (this.activeLesson) {
+          this.activeLesson.isCompleted = true;
+        }
+        
+        this.notif.success('Lesson completed! 🎉', 'Keep going!');
+        this.cdr.markForCheck();
 
-      // Auto-advance to next lesson
-      this.goToNext();
+        // Auto-advance to next lesson
+        setTimeout(() => this.goToNext(), 500);
+      },
+      error: (err) => {
+        console.error('Error marking lesson complete:', err);
+        this.notif.error('Failed to mark lesson complete', 'Please try again');
+      }
     });
   }
 

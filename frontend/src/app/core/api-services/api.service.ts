@@ -454,7 +454,8 @@ export class ApiService {
   }
 
   private toLessonPayload(data: Partial<Lesson>): Record<string, unknown> {
-    const lessonType = data.type ?? 'TEXT';
+    // Handle both 'type' (from Lesson interface) and 'contentType' (from dialog form)
+    const lessonType = (data as any).contentType ?? data.type ?? 'TEXT';
     const contentType = lessonType === 'VIDEO' ? 'VIDEO'
       : lessonType === 'PDF' ? 'PDF'
       : 'TEXT';
@@ -462,11 +463,11 @@ export class ApiService {
     return {
       title: data.title,
       contentType,
-      videoUrl: lessonType === 'VIDEO' ? data.contentUrl : undefined,
-      pdfUrl: lessonType === 'PDF' ? data.contentUrl : undefined,
-      contentText: data.textContent,
-      durationSeconds: data.duration ?? 0,
-      position: data.order ?? 1
+      videoUrl: contentType === 'VIDEO' ? ((data as any).videoUrl ?? data.contentUrl) : undefined,
+      pdfUrl: contentType === 'PDF' ? ((data as any).pdfUrl ?? data.contentUrl) : undefined,
+      contentText: (data as any).contentText ?? data.textContent,
+      durationSeconds: (data as any).durationSeconds ?? data.duration ?? 0,
+      position: (data as any).position ?? data.order ?? 1
     };
   }
 
@@ -542,11 +543,18 @@ export class ApiService {
       moduleId: lesson.moduleId,
       title: lesson.title,
       type,
+      contentType: lesson.contentType, // Keep original contentType for backwards compatibility
       contentUrl: lesson.videoUrl ?? lesson.pdfUrl,
       textContent: lesson.contentText,
+      contentText: lesson.contentText,
+      videoUrl: lesson.videoUrl,
+      pdfUrl: lesson.pdfUrl,
       duration: Number(lesson.durationSeconds ?? 0),
+      durationSeconds: Number(lesson.durationSeconds ?? 0),
+      position: Number(lesson.position ?? 1),
       order: Number(lesson.position ?? 1),
-      isPreview: false
-    };
+      isPreview: false,
+      isCompleted: lesson.isCompleted ?? false
+    } as any;
   }
 }

@@ -216,6 +216,10 @@ export class CourseListComponent implements OnInit, OnDestroy {
     this.router.navigate(['/admin/courses', course.id, 'enrolled-users']);
   }
 
+  manageContent(course: AdminCourse): void {
+    this.router.navigate(['/admin/courses', course.id, 'manage']);
+  }
+
   exportData(format: 'CSV' | 'EXCEL'): void {
     this.exportService.exportCourses(this.courses(), format);
   }

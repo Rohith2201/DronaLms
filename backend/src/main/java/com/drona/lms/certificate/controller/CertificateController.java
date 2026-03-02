@@ -28,7 +28,7 @@ public class CertificateController {
     private final CertificateService certificateService;
 
     @PostMapping("/issue")
-    @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','STUDENT')")
     public ResponseEntity<CertificateResponse> issue(@Valid @RequestBody CertificateIssueRequest request,
                                                      @AuthenticationPrincipal UserDetails principal) {
         return ResponseEntity.status(HttpStatus.CREATED).body(certificateService.issue(request, principal.getUsername()));

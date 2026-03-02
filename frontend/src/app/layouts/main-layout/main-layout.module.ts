@@ -65,6 +65,11 @@ const routes: Routes = [
         canActivate: [RoleGuard], data: { roles: ['INSTRUCTOR', 'ADMIN'] },
         loadComponent: () => import('../../pages/instructor/manage-content/manage-content.component').then(m => m.ManageContentComponent)
       },
+      {
+        path: 'instructor/quizzes/:quizId/questions',
+        canActivate: [RoleGuard], data: { roles: ['INSTRUCTOR', 'ADMIN'] },
+        loadComponent: () => import('../../pages/instructor/manage-questions/manage-questions.component').then(m => m.ManageQuestionsComponent)
+      },
 
       // ── Admin ─────────────────────────────────────────────────────────────
       {
@@ -91,6 +96,16 @@ const routes: Routes = [
         path: 'admin/courses/:courseId/enrolled-users',
         canActivate: [RoleGuard], data: { roles: ['ADMIN'] },
         loadComponent: () => import('../../pages/admin/courses/enrolled-users/enrolled-users.component').then(m => m.EnrolledUsersComponent)
+      },
+      {
+        path: 'admin/courses/:id/manage',
+        canActivate: [RoleGuard], data: { roles: ['ADMIN'] },
+        loadComponent: () => import('../../pages/admin/courses/manage-content/manage-content.component').then(m => m.ManageContentComponent)
+      },
+      {
+        path: 'admin/quizzes/:quizId/questions',
+        canActivate: [RoleGuard], data: { roles: ['ADMIN'] },
+        loadComponent: () => import('../../pages/instructor/manage-questions/manage-questions.component').then(m => m.ManageQuestionsComponent)
       },
 
       // ── Default redirects ──────────────────────────────────────────────────

@@ -28,7 +28,11 @@ public class CertificateService {
         var enrollment = enrollmentRepository.findById(request.getEnrollmentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Enrollment not found: " + request.getEnrollmentId()));
 
-        courseAccessService.assertAdminOrCourseInstructor(actorEmail, enrollment.getCourse().getInstructor().getEmail());
+        // Allow students to claim their own certificates OR admin/instructor to issue them
+        boolean isOwnEnrollment = enrollment.getStudent().getEmail().equals(actorEmail);
+        if (!isOwnEnrollment) {
+            courseAccessService.assertAdminOrCourseInstructor(actorEmail, enrollment.getCourse().getInstructor().getEmail());
+        }
 
         if (!enrollment.isCompleted()) {
             throw new IllegalArgumentException("Certificate can be issued only for completed enrollments");
@@ -73,14 +77,22 @@ public class CertificateService {
 
     private CertificateResponse toResponse(Certificate certificate) {
         var enrollment = certificate.getEnrollment();
+        var student = enrollment.getStudent();
+        var course = enrollment.getCourse();
+        
+        String studentName = student.getFirstName() + " " + student.getLastName();
+        
         return CertificateResponse.builder()
                 .id(certificate.getId())
                 .enrollmentId(enrollment.getId())
-                .studentId(enrollment.getStudent().getId())
-                .courseId(enrollment.getCourse().getId())
+                .studentId(student.getId())
+                .courseId(course.getId())
                 .certificateNumber(certificate.getCertificateNumber())
                 .issuedAt(certificate.getIssuedAt())
                 .fileUrl(certificate.getFileUrl())
+                .studentName(studentName)
+                .courseTitle(course.getTitle())
+                .completionDate(enrollment.getCompletionDate())
                 .build();
     }
 }

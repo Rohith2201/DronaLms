@@ -5,8 +5,12 @@ import { RoleGuard } from './core/guards/auth.guard';
 import { GuestGuard } from './core/guards/auth.guard';
 
 const routes: Routes = [
-  // Default redirect
-  { path: '', redirectTo: '/student/dashboard', pathMatch: 'full' },
+  // Home page
+  { 
+    path: '', 
+    loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent),
+    pathMatch: 'full'
+  },
 
   // Auth layout (guest only — login/register)
   {

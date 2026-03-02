@@ -203,7 +203,7 @@ export class ModuleProgressComponent {
   @Input() activeLessonId?: EntityId;
   @Output() onLessonSelect = new EventEmitter<EntityId>();
 
-  expanded = false;
+  expanded = true; // Expand modules by default
 
   toggle(): void {
     if (!this.module.isLocked) this.expanded = !this.expanded;
