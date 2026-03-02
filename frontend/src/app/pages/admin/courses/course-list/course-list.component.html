@@ -1,0 +1,233 @@
+<div class="courses-management-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Courses Management</h1>
+      <p class="subtitle">{{ totalElements() }} courses</p>
+    </div>
+    <div class="header-actions">
+      <button mat-icon-button matTooltip="Refresh" (click)="loadCourses()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+      <button mat-icon-button [matMenuTriggerFor]="exportMenu" matTooltip="Export">
+        <mat-icon>download</mat-icon>
+      </button>
+      <button mat-raised-button color="primary" (click)="createCourse()">
+        <mat-icon>add</mat-icon>
+        Create Course
+      </button>
+    </div>
+  </div>
+
+  <!-- Export Menu -->
+  <mat-menu #exportMenu="matMenu">
+    <button mat-menu-item (click)="exportData('CSV')">
+      <mat-icon>description</mat-icon>
+      <span>Export as CSV</span>
+    </button>
+    <button mat-menu-item (click)="exportData('EXCEL')">
+      <mat-icon>table_chart</mat-icon>
+      <span>Export as Excel</span>
+    </button>
+  </mat-menu>
+
+  <!-- Filters -->
+  <mat-card class="filters-card">
+    <div class="filters-row">
+      <!-- Search -->
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-icon matPrefix>search</mat-icon>
+        <mat-label>Search courses...</mat-label>
+        <input matInput [formControl]="searchControl" placeholder="Title, instructor, description">
+      </mat-form-field>
+
+      <!-- Category -->
+      <mat-form-field appearance="outline">
+        <mat-label>Category</mat-label>
+        <mat-select [formControl]="categoryControl" (selectionChange)="onFilterChange()">
+          <mat-option value="">All Categories</mat-option>
+          <mat-option *ngFor="let cat of categories" [value]="cat">{{ cat }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Level -->
+      <mat-form-field appearance="outline">
+        <mat-label>Level</mat-label>
+        <mat-select [formControl]="levelControl" (selectionChange)="onFilterChange()">
+          <mat-option value="">All Levels</mat-option>
+          <mat-option *ngFor="let level of levels" [value]="level">{{ level }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Status -->
+      <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select [formControl]="statusControl" (selectionChange)="onFilterChange()">
+          <mat-option value="">All Statuses</mat-option>
+          <mat-option *ngFor="let status of statuses" [value]="status">{{ status }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-stroked-button (click)="clearFilters()">
+        <mat-icon>clear</mat-icon>
+        Clear
+      </button>
+    </div>
+  </mat-card>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading()" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading courses...</p>
+  </div>
+
+  <!-- Courses Table -->
+  <mat-card *ngIf="!loading() && hasData()" class="table-card">
+    <table mat-table [dataSource]="courses()" class="courses-table">
+
+      <!-- Title Column -->
+      <ng-container matColumnDef="title">
+        <th mat-header-cell *matHeaderCellDef>Course</th>
+        <td mat-cell *matCellDef="let course">
+          <div class="course-info">
+            <div class="course-title">{{ course.title }}</div>
+            <div class="course-instructor">{{ course.instructorName || 'Unknown' }}</div>
+            <div class="course-price">{{ formatPrice(course.price || 0) }}</div>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Category Column -->
+      <ng-container matColumnDef="category">
+        <th mat-header-cell *matHeaderCellDef>Category</th>
+        <td mat-cell *matCellDef="let course">
+          <mat-chip>{{ course.category || 'Uncategorized' }}</mat-chip>
+        </td>
+      </ng-container>
+
+      <!-- Level Column -->
+      <ng-container matColumnDef="level">
+        <th mat-header-cell *matHeaderCellDef>Level</th>
+        <td mat-cell *matCellDef="let course">
+          <mat-chip [color]="getLevelColor(course.level)">
+            {{ course.level || 'N/A' }}
+          </mat-chip>
+        </td>
+      </ng-container>
+
+      <!-- Enrollments Column -->
+      <ng-container matColumnDef="enrollmentCount">
+        <th mat-header-cell *matHeaderCellDef>Enrollments</th>
+        <td mat-cell *matCellDef="let course">
+          <div class="metric-cell">
+            <mat-icon class="metric-icon">people</mat-icon>
+            <span class="metric-value">{{ course.enrollmentCount | number }}</span>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Rating Column -->
+      <ng-container matColumnDef="rating">
+        <th mat-header-cell *matHeaderCellDef>Rating</th>
+        <td mat-cell *matCellDef="let course">
+          <div class="rating-cell">
+            <mat-icon class="star-icon">star</mat-icon>
+            <span class="rating-value">{{ course.rating | number:'1.1-1' }}</span>
+            <span class="rating-count">({{ course.ratingCount }})</span>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Completion Rate Column -->
+      <ng-container matColumnDef="completionRate">
+        <th mat-header-cell *matHeaderCellDef>Completion</th>
+        <td mat-cell *matCellDef="let course">
+          <div class="completion-cell">
+            <div class="completion-bar">
+              <div class="completion-fill" [style.width.%]="course.completionRate"></div>
+            </div>
+            <span class="completion-value">{{ course.completionRate | number:'1.0-0' }}%</span>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Status Column -->
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let course">
+          <mat-chip [color]="getStatusColor(course.status || 'DRAFT')">
+            {{ course.status || 'DRAFT' }}
+          </mat-chip>
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef class="actions-header">Actions</th>
+        <td mat-cell *matCellDef="let course" class="actions-cell">
+          <!-- Quick Actions (Desktop) -->
+          <div class="quick-actions">
+            <button mat-icon-button matTooltip="View Analytics" (click)="viewAnalytics(course)">
+              <mat-icon>analytics</mat-icon>
+            </button>
+            <button mat-icon-button matTooltip="Edit Course" (click)="editCourse(course)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button matTooltip="Delete Course" (click)="deleteCourse(course)" class="delete-action">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+          
+          <!-- More Menu (Mobile) -->
+          <button mat-icon-button [matMenuTriggerFor]="actionsMenu" class="more-menu" (click)="$event.stopPropagation()">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          
+          <mat-menu #actionsMenu="matMenu">
+            <button mat-menu-item (click)="viewAnalytics(course)">
+              <mat-icon>analytics</mat-icon>
+              <span>Analytics</span>
+            </button>
+            <button mat-menu-item (click)="viewEnrolledUsers(course)">
+              <mat-icon>people</mat-icon>
+              <span>Enrolled Users</span>
+            </button>
+            <mat-divider></mat-divider>
+            <button mat-menu-item (click)="editCourse(course)">
+              <mat-icon>edit</mat-icon>
+              <span>Edit</span>
+            </button>
+            <button mat-menu-item (click)="deleteCourse(course)" class="delete-action">
+              <mat-icon color="warn">delete</mat-icon>
+              <span>Delete</span>
+            </button>
+          </mat-menu>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="course-row"></tr>
+    </table>
+
+    <!-- Paginator -->
+    <mat-paginator 
+      [length]="totalElements()"
+      [pageSize]="pageSize()"
+      [pageSizeOptions]="[5, 10, 25, 50]"
+      [pageIndex]="pageIndex()"
+      (page)="onPageChange($event)"
+      showFirstLastButtons>
+    </mat-paginator>
+  </mat-card>
+
+  <!-- Empty State -->
+  <mat-card *ngIf="!loading() && !hasData()" class="empty-state">
+    <mat-icon>school</mat-icon>
+    <h2>No courses found</h2>
+    <p>Start by creating your first course or adjust your filters.</p>
+    <button mat-raised-button color="primary" (click)="createCourse()">
+      <mat-icon>add</mat-icon>
+      Create Course
+    </button>
+  </mat-card>
+</div>

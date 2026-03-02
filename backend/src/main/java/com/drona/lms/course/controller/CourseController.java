@@ -3,6 +3,8 @@ package com.drona.lms.course.controller;
 import com.drona.lms.course.dto.CourseCreateRequest;
 import com.drona.lms.course.dto.CourseResponse;
 import com.drona.lms.course.dto.CourseUpdateRequest;
+import com.drona.lms.course.dto.CourseAnalyticsResponse;
+import com.drona.lms.course.dto.EnrolledUserResponse;
 import com.drona.lms.course.service.CourseService;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -32,16 +34,28 @@ public class CourseController {
     private final CourseService courseService;
 
     @GetMapping
-    public ResponseEntity<Page<CourseResponse>> getCourses(@RequestParam(required = false) String q,
-                                                           @RequestParam(required = false) Boolean published,
-                                                           @RequestParam(required = false) String instructorEmail,
-                                                           @AuthenticationPrincipal UserDetails principal,
-                                                           Pageable pageable) {
+    public ResponseEntity<Page<CourseResponse>> getCourses(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) Boolean published,
+            @RequestParam(required = false) String instructorEmail,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String level,
+            @RequestParam(required = false) String status,
+            @AuthenticationPrincipal UserDetails principal,
+            Pageable pageable) {
+        
+        // Map status to published boolean
+        Boolean publishedFilter = published;
+        if (status != null && !status.isEmpty()) {
+            publishedFilter = "PUBLISHED".equalsIgnoreCase(status);
+        }
+        
         // If instructorEmail is "me", get courses for the current user
         if ("me".equalsIgnoreCase(instructorEmail) && principal != null) {
             return ResponseEntity.ok(courseService.getInstructorCourses(principal.getUsername(), pageable));
         }
-        return ResponseEntity.ok(courseService.getCourses(q, published, pageable));
+        
+        return ResponseEntity.ok(courseService.getCourses(q, publishedFilter, category, level, pageable));
     }
 
     @GetMapping("/{courseId}")
@@ -71,5 +85,19 @@ public class CourseController {
                                              @AuthenticationPrincipal UserDetails principal) {
         courseService.deleteCourse(courseId, principal.getUsername());
         return ResponseEntity.noContent().build();
+    }
+    
+    @GetMapping("/{courseId}/analytics")
+    @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
+    public ResponseEntity<CourseAnalyticsResponse> getCourseAnalytics(@PathVariable UUID courseId) {
+        return ResponseEntity.ok(courseService.getCourseAnalytics(courseId));
+    }
+    
+    @GetMapping("/{courseId}/enrolled-users")
+    @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
+    public ResponseEntity<Page<EnrolledUserResponse>> getEnrolledUsers(
+            @PathVariable UUID courseId,
+            Pageable pageable) {
+        return ResponseEntity.ok(courseService.getEnrolledUsers(courseId, pageable));
     }
 }

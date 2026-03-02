@@ -1,0 +1,145 @@
+<div class="course-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>{{ dialogTitle }}</h2>
+    <button mat-icon-button mat-dialog-close tabindex="-1">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    <form [formGroup]="courseForm" class="course-form">
+      
+      <!-- Title -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Course Title</mat-label>
+        <input matInput formControlName="title" placeholder="e.g., Complete Web Development Bootcamp">
+        <mat-icon matPrefix>title</mat-icon>
+        <mat-error *ngIf="courseForm.get('title')?.invalid">
+          {{ getErrorMessage('title') }}
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Description -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Description</mat-label>
+        <textarea 
+          matInput 
+          formControlName="description" 
+          rows="4"
+          placeholder="What will students learn in this course?"></textarea>
+        <mat-icon matPrefix>description</mat-icon>
+        <mat-error *ngIf="courseForm.get('description')?.invalid">
+          {{ getErrorMessage('description') }}
+        </mat-error>
+        <mat-hint align="end">
+          {{ courseForm.get('description')?.value?.length || 0 }} / 2000
+        </mat-hint>
+      </mat-form-field>
+
+      <!-- Row: Category & Level -->
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Category</mat-label>
+          <mat-select formControlName="category">
+            <mat-option *ngFor="let category of categories" [value]="category">
+              {{ category }}
+            </mat-option>
+          </mat-select>
+          <mat-icon matPrefix>category</mat-icon>
+          <mat-error *ngIf="courseForm.get('category')?.invalid">
+            {{ getErrorMessage('category') }}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Difficulty Level</mat-label>
+          <mat-select formControlName="level">
+            <mat-option *ngFor="let level of levels" [value]="level">
+              {{ level }}
+            </mat-option>
+          </mat-select>
+          <mat-icon matPrefix>signal_cellular_alt</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <!-- Row: Price & Status -->
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Price</mat-label>
+          <input matInput type="number" formControlName="price" min="0" step="0.01" placeholder="0.00">
+          <span matPrefix>$&nbsp;</span>
+          <mat-hint>Set 0 for free course</mat-hint>
+          <mat-error *ngIf="courseForm.get('price')?.invalid">
+            {{ getErrorMessage('price') }}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Status</mat-label>
+          <mat-select formControlName="status">
+            <mat-option *ngFor="let status of statuses" [value]="status">
+              {{ status }}
+            </mat-option>
+          </mat-select>
+          <mat-icon matPrefix>flag</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <!-- Thumbnail URL -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Thumbnail URL</mat-label>
+        <input matInput formControlName="thumbnailUrl" placeholder="https://example.com/image.jpg">
+        <mat-icon matPrefix>image</mat-icon>
+        <mat-hint>Optional: Provide image URL for course thumbnail</mat-hint>
+      </mat-form-field>
+
+      <!-- Preview Video URL -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Preview Video URL</mat-label>
+        <input matInput formControlName="previewVideoUrl" placeholder="https://example.com/video.mp4">
+        <mat-icon matPrefix>video_library</mat-icon>
+        <mat-hint>Optional: Provide video URL for course preview</mat-hint>
+      </mat-form-field>
+
+      <!-- Tags -->
+      <div class="tags-section">
+        <label class="tags-label">
+          <mat-icon>local_offer</mat-icon>
+          Course Tags
+        </label>
+        <mat-chip-grid #chipGrid aria-label="Course tags">
+          <mat-chip-row *ngFor="let tag of tags()" (removed)="removeTag(tag)">
+            {{ tag }}
+            <button matChipRemove>
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </mat-chip-row>
+        </mat-chip-grid>
+        <input
+          placeholder="Add tag and press Enter..."
+          [matChipInputFor]="chipGrid"
+          [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+          (matChipInputTokenEnd)="addTag($event)"
+          class="tag-input"
+        />
+        <mat-hint class="tags-hint">Press Enter or comma to add tags (e.g., JavaScript, React, Node.js)</mat-hint>
+      </div>
+
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()" [disabled]="loading()">
+      Cancel
+    </button>
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="onSubmit()"
+      [disabled]="loading() || courseForm.invalid">
+      <mat-spinner *ngIf="loading()" diameter="20" class="button-spinner"></mat-spinner>
+      <mat-icon *ngIf="!loading()">{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+      <span *ngIf="!loading()">{{ isEditMode ? 'Update Course' : 'Create Course' }}</span>
+    </button>
+  </mat-dialog-actions>
+</div>

@@ -55,6 +55,16 @@ const routes: Routes = [
         canActivate: [RoleGuard], data: { roles: ['INSTRUCTOR', 'ADMIN'] },
         loadComponent: () => import('../../pages/instructor/manage-courses/manage-courses.component').then(m => m.ManageCoursesComponent)
       },
+      {
+        path: 'instructor/courses/:id/analytics',
+        canActivate: [RoleGuard], data: { roles: ['INSTRUCTOR', 'ADMIN'] },
+        loadComponent: () => import('../../pages/instructor/course-analytics/course-analytics.component').then(m => m.CourseAnalyticsComponent)
+      },
+      {
+        path: 'instructor/courses/:id/manage',
+        canActivate: [RoleGuard], data: { roles: ['INSTRUCTOR', 'ADMIN'] },
+        loadComponent: () => import('../../pages/instructor/manage-content/manage-content.component').then(m => m.ManageContentComponent)
+      },
 
       // ── Admin ─────────────────────────────────────────────────────────────
       {
@@ -66,6 +76,21 @@ const routes: Routes = [
         path: 'admin/users',
         canActivate: [RoleGuard], data: { roles: ['ADMIN'] },
         loadComponent: () => import('../../pages/admin/users-management/users-management.component').then(m => m.UsersManagementComponent)
+      },
+      {
+        path: 'admin/courses',
+        canActivate: [RoleGuard], data: { roles: ['ADMIN'] },
+        loadComponent: () => import('../../pages/admin/courses/course-list/course-list.component').then(m => m.CourseListComponent)
+      },
+      {
+        path: 'admin/courses/:courseId/analytics',
+        canActivate: [RoleGuard], data: { roles: ['ADMIN'] },
+        loadComponent: () => import('../../pages/admin/courses/course-analytics/course-analytics.component').then(m => m.CourseAnalyticsComponent)
+      },
+      {
+        path: 'admin/courses/:courseId/enrolled-users',
+        canActivate: [RoleGuard], data: { roles: ['ADMIN'] },
+        loadComponent: () => import('../../pages/admin/courses/enrolled-users/enrolled-users.component').then(m => m.EnrolledUsersComponent)
       },
 
       // ── Default redirects ──────────────────────────────────────────────────

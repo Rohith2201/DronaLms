@@ -18,4 +18,11 @@ public class CourseResponse {
     private BigDecimal price;
     private UUID instructorId;
     private String instructorName;
+    
+    // Admin metrics
+    private Long enrollmentCount;
+    private Double averageRating;
+    private Integer ratingCount;
+    private BigDecimal completionRate;
+    private String status; // DRAFT, PUBLISHED, ARCHIVED
 }

@@ -15,17 +15,23 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
             SELECT c.* FROM courses c
             WHERE (:q IS NULL OR :q = '' OR
                    LOWER(c.title) LIKE LOWER(CONCAT('%', :q, '%')) OR
-                   LOWER(c.category) LIKE LOWER(CONCAT('%', :q, '%')))
+                   LOWER(c.category) LIKE LOWER(CONCAT('%', :q, '%')) OR
+                   LOWER(c.description) LIKE LOWER(CONCAT('%', :q, '%')))
             AND (:published IS NULL OR c.published = :published)
             AND (:instructorId IS NULL OR c.instructor_id = :instructorId)
+            AND (:category IS NULL OR :category = '' OR LOWER(c.category) = LOWER(:category))
+            AND (:level IS NULL OR :level = '' OR LOWER(c.level) = LOWER(:level))
         """,
         countQuery = """
             SELECT COUNT(*) FROM courses c
             WHERE (:q IS NULL OR :q = '' OR
                    LOWER(c.title) LIKE LOWER(CONCAT('%', :q, '%')) OR
-                   LOWER(c.category) LIKE LOWER(CONCAT('%', :q, '%')))
+                   LOWER(c.category) LIKE LOWER(CONCAT('%', :q, '%')) OR
+                   LOWER(c.description) LIKE LOWER(CONCAT('%', :q, '%')))
             AND (:published IS NULL OR c.published = :published)
             AND (:instructorId IS NULL OR c.instructor_id = :instructorId)
+            AND (:category IS NULL OR :category = '' OR LOWER(c.category) = LOWER(:category))
+            AND (:level IS NULL OR :level = '' OR LOWER(c.level) = LOWER(:level))
         """,
         nativeQuery = true
     )
@@ -33,6 +39,8 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
             @Param("q") String q,
             @Param("published") Boolean published,
             @Param("instructorId") UUID instructorId,
+            @Param("category") String category,
+            @Param("level") String level,
             Pageable pageable
     );
 }

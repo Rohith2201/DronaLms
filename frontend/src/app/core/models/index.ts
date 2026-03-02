@@ -79,6 +79,7 @@ export interface Course {
   totalModules?: number;
   rating?: number;
   ratingCount?: number;
+  completionRate?: number; // Admin metric from backend
   totalDuration?: number;
   tags?: string[];
   createdAt?: string;

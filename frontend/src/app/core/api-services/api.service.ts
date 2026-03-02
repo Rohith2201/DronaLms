@@ -314,6 +314,82 @@ export class ApiService {
     );
   }
 
+  // ─── Course Analytics (Instructor) ─────────────────────────────────────────
+
+  getCourseAnalytics(courseId: EntityId): Observable<any> {
+    return this.http.get<any>(`${this.base}/courses/${courseId}/analytics`);
+  }
+
+  getCourseEnrolledUsers(courseId: EntityId, page = 0, size = 50): Observable<any> {
+    const params = new HttpParams().set('page', String(page)).set('size', String(size));
+    return this.http.get<any>(`${this.base}/courses/${courseId}/enrolled-users`, { params });
+  }
+
+  // ─── Module & Lesson Public Access ────────────────────────────────────────
+
+  getModulesByCoursePublic(courseId: EntityId): Observable<CourseModule[]> {
+    return this.getModulesByCourse(courseId);
+  }
+
+  getLessonsByModulePublic(moduleId: EntityId): Observable<Lesson[]> {
+    return this.getLessonsByModule(moduleId);
+  }
+
+  // ─── Quiz Management (Instructor/Admin) ────────────────────────────────────
+
+  getQuizzesByModule(moduleId: EntityId): Observable<any[]> {
+    const params = new HttpParams().set('page', '0').set('size', '100');
+    return this.http.get<Page<any>>(`${this.base}/quizzes/module/${moduleId}`, { params }).pipe(
+      map(page => page?.content ?? [])
+    );
+  }
+
+  createQuiz(moduleId: EntityId, data: any): Observable<any> {
+    return this.http.post<any>(`${this.base}/quizzes/module/${moduleId}`, data);
+  }
+
+  updateQuiz(quizId: EntityId, data: any): Observable<any> {
+    return this.http.put<any>(`${this.base}/quizzes/${quizId}`, data);
+  }
+
+  deleteQuiz(quizId: EntityId): Observable<void> {
+    return this.http.delete<void>(`${this.base}/quizzes/${quizId}`);
+  }
+
+  // ─── Question Management (Instructor/Admin) ────────────────────────────────
+
+  getQuestionsByQuiz(quizId: EntityId): Observable<any[]> {
+    const params = new HttpParams().set('page', '0').set('size', '200');
+    return this.http.get<Page<any>>(`${this.base}/questions/quiz/${quizId}`, { params }).pipe(
+      map(page => page?.content ?? [])
+    );
+  }
+
+  createQuestion(quizId: EntityId, data: any): Observable<any> {
+    return this.http.post<any>(`${this.base}/questions/quiz/${quizId}`, data);
+  }
+
+  updateQuestion(questionId: EntityId, data: any): Observable<any> {
+    return this.http.put<any>(`${this.base}/questions/${questionId}`, data);
+  }
+
+  deleteQuestion(questionId: EntityId): Observable<void> {
+    return this.http.delete<void>(`${this.base}/questions/${questionId}`);
+  }
+
+  // ─── Quiz Submissions (Instructor) ─────────────────────────────────────────
+
+  getQuizSubmissions(quizId: EntityId, page = 0, size = 50): Observable<Page<any>> {
+    const params = new HttpParams().set('page', String(page)).set('size', String(size));
+    return this.http.get<Page<any>>(`${this.base}/submissions/quiz/${quizId}`, { params });
+  }
+
+  gradeSubmission(submissionId: EntityId, score: number, feedback?: string): Observable<any> {
+    return this.http.patch<any>(`${this.base}/submissions/${submissionId}/grade`, { score, feedback });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+
   getAdminAnalytics(): Observable<AdminAnalytics> {
     return this.http.get<AdminAnalytics>(`${this.base}/users/analytics`);
   }

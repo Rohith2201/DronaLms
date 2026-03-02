@@ -1,0 +1,219 @@
+.course-dialog {
+  .dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    border-bottom: 1px solid #e0e0e0;
+    margin: -24px -24px 0 -24px;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+    h2 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+      color: white;
+    }
+
+    button {
+      color: white;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+    }
+  }
+
+  mat-dialog-content {
+    padding: 32px 24px;
+    max-height: 70vh;
+    overflow-y: auto;
+
+    .course-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+
+      .full-width {
+        width: 100%;
+      }
+
+      .form-row {
+        display: flex;
+        gap: 16px;
+
+        mat-form-field {
+          flex: 1;
+        }
+
+        @media (max-width: 600px) {
+          flex-direction: column;
+        }
+      }
+
+      .tags-section {
+        margin-top: 8px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+
+        .tags-label {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          color: #495057;
+          margin-bottom: 12px;
+
+          mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+            color: #667eea;
+          }
+        }
+
+        mat-chip-grid {
+          margin-bottom: 12px;
+          min-height: 40px;
+        }
+
+        mat-chip-row {
+          background-color: #667eea;
+          color: white;
+          font-weight: 500;
+
+          button[matChipRemove] {
+            color: white;
+            opacity: 0.8;
+
+            &:hover {
+              opacity: 1;
+            }
+
+            mat-icon {
+              font-size: 18px;
+              width: 18px;
+              height: 18px;
+            }
+          }
+        }
+
+        .tag-input {
+          width: 100%;
+          padding: 12px;
+          border: 2px solid #dee2e6;
+          border-radius: 6px;
+          font-size: 14px;
+          outline: none;
+          transition: all 0.2s;
+          font-family: inherit;
+
+          &:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+          }
+
+          &::placeholder {
+            color: #adb5bd;
+          }
+        }
+
+        .tags-hint {
+          display: block;
+          font-size: 12px;
+          color: #6c757d;
+          margin-top: 8px;
+          font-style: italic;
+        }
+      }
+
+      mat-form-field {
+        mat-icon[matPrefix] {
+          color: #667eea;
+          margin-right: 8px;
+        }
+
+        mat-hint {
+          font-size: 12px;
+        }
+      }
+    }
+  }
+
+  mat-dialog-actions {
+    padding: 16px 24px;
+    border-top: 1px solid #e0e0e0;
+    margin: 0 -24px -24px -24px;
+    gap: 12px;
+    background: #f8f9fa;
+
+    button {
+      min-width: 120px;
+      font-weight: 500;
+
+      mat-icon {
+        margin-right: 4px;
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+
+      .button-spinner {
+        display: inline-block;
+        margin: 0 8px 0 0;
+      }
+    }
+
+    button[mat-raised-button] {
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+      &:hover:not([disabled]) {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        transform: translateY(-1px);
+      }
+
+      &:disabled {
+        opacity: 0.6;
+      }
+    }
+  }
+}
+
+// Scrollbar styling
+mat-dialog-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+mat-dialog-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+mat-dialog-content::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+
+  &:hover {
+    background: #aaa;
+  }
+}
+
+// Animation
+.course-dialog {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -293,10 +293,11 @@ export class SidebarComponent {
     {
       label: 'Administration',
       items: [
-        { label: 'Dashboard',    icon: 'admin_panel_settings', route: '/admin/dashboard' },
-        { label: 'Users',        icon: 'people',               route: '/admin/users' },
-        { label: 'Analytics',    icon: 'bar_chart',            route: '/admin/analytics' },
-        { label: 'Courses',      icon: 'library_books',        route: '/admin/courses' },
+        { label: 'Dashboard',          icon: 'dashboard',            route: '/admin/dashboard' },
+        { label: 'Courses Management', icon: 'library_books',        route: '/admin/courses' },
+        { label: 'Users',              icon: 'people',               route: '/admin/users' },
+        { label: 'Analytics',          icon: 'analytics',            route: '/admin/analytics' },
+        { label: 'Reports',            icon: 'assessment',           route: '/admin/reports' },
       ]
     }
   ];
