@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CourseAnalyticsResponse {
+    private String courseTitle;
+    private BigDecimal averageRating;
     private Long totalEnrollments;
     private BigDecimal averageProgress;
     private Long completedCount;
@@ -19,6 +21,7 @@ public class CourseAnalyticsResponse {
     private Long notStartedCount;
     private BigDecimal completionRate;
     private List<MonthlyEnrollment> enrollmentTrends;
+    private ProgressDistribution progressDistribution;
     
     @Data
     @Builder
@@ -27,5 +30,15 @@ public class CourseAnalyticsResponse {
     public static class MonthlyEnrollment {
         private String month;
         private Long count;
+    }
+    
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ProgressDistribution {
+        private Long completed;
+        private Long inProgress;
+        private Long notStarted;
     }
 }

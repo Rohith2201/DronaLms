@@ -19,6 +19,7 @@ import com.drona.lms.module.dto.ModuleResponse;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -127,13 +128,39 @@ public class CourseService {
             ? BigDecimal.valueOf(completedCount * 100.0 / totalEnrollments).setScale(2, RoundingMode.HALF_UP)
             : BigDecimal.ZERO;
         
+        // Build monthly enrollment trends
+        List<CourseAnalyticsResponse.MonthlyEnrollment> enrollmentTrends = new ArrayList<>();
+        List<Object[]> trendsData = enrollmentRepository.getMonthlyEnrollmentTrends(courseId);
+        for (Object[] row : trendsData) {
+            if (row.length >= 2) {
+                String month = row[0] != null ? row[0].toString() : "";
+                Long count = row[1] != null ? ((Number) row[1]).longValue() : 0L;
+                enrollmentTrends.add(CourseAnalyticsResponse.MonthlyEnrollment.builder()
+                        .month(month)
+                        .count(count)
+                        .build());
+            }
+        }
+        
+        // Build progress distribution
+        CourseAnalyticsResponse.ProgressDistribution progressDistribution = 
+            CourseAnalyticsResponse.ProgressDistribution.builder()
+                .completed(completedCount)
+                .inProgress(inProgressCount)
+                .notStarted(notStartedCount)
+                .build();
+        
         return CourseAnalyticsResponse.builder()
+                .courseTitle(course.getTitle())
+                .averageRating(BigDecimal.ZERO) // TODO: Implement ratings system
                 .totalEnrollments(totalEnrollments)
                 .averageProgress(averageProgress)
                 .completedCount(completedCount)
                 .inProgressCount(inProgressCount)
                 .notStartedCount(notStartedCount)
                 .completionRate(completionRate)
+                .enrollmentTrends(enrollmentTrends)
+                .progressDistribution(progressDistribution)
                 .build();
     }
     

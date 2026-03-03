@@ -46,6 +46,11 @@ const routes: Routes = [
         loadComponent: () => import('../../pages/instructor/instructor-dashboard/instructor-dashboard.component').then(m => m.InstructorDashboardComponent)
       },
       {
+        path: 'instructor/analytics',
+        canActivate: [RoleGuard], data: { roles: ['INSTRUCTOR', 'ADMIN'] },
+        loadComponent: () => import('../../pages/instructor/instructor-analytics/instructor-analytics.component').then(m => m.InstructorAnalyticsComponent)
+      },
+      {
         path: 'instructor/courses/create',
         canActivate: [RoleGuard], data: { roles: ['INSTRUCTOR', 'ADMIN'] },
         loadComponent: () => import('../../pages/instructor/create-course/create-course.component').then(m => m.CreateCourseComponent)

@@ -18,6 +18,16 @@ const routes: Routes = [
     loadComponent: () => import('./pages/public/verify-certificate/verify-certificate.component').then(m => m.VerifyCertificateComponent)
   },
 
+  {
+    path: 'blogs',
+    loadComponent: () => import('./pages/public/blogs/blogs.component').then(m => m.BlogsComponent)
+  },
+
+  {
+    path: 'sitemap',
+    loadComponent: () => import('./pages/public/sitemap/sitemap.component').then(m => m.SitemapComponent)
+  },
+
   // Auth layout (guest only — login/register)
   {
     path: 'auth',

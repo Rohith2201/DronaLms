@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips';
-import { Subject, takeUntil, forkJoin } from 'rxjs';
+import { Subject, takeUntil, forkJoin, catchError, of } from 'rxjs';
 import { BaseChartDirective, provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import { ApiService } from '../../../core/api-services/api.service';
@@ -76,8 +76,8 @@ import { EntityId } from '../../../core/models';
           <div class="chart-container">
             <canvas baseChart
               [data]="enrollmentChartData"
-              [options]="lineChartOptions"
-              type="line">
+              [options]="barChartOptions"
+              type="bar">
             </canvas>
           </div>
         </div>
@@ -126,8 +126,8 @@ import { EntityId } from '../../../core/models';
             <ng-container matColumnDef="status">
               <th mat-header-cell *matHeaderCellDef>Status</th>
               <td mat-cell *matCellDef="let user">
-                <mat-chip [class]="'status-chip ' + user.completionStatus.toLowerCase()">
-                  {{ user.completionStatus.replace('_', ' ') }}
+                <mat-chip [class]="'status-chip ' + (user.completionStatus || 'NOT_STARTED').toLowerCase()">
+                  {{ (user.completionStatus || 'NOT_STARTED').replace('_', ' ') }}
                 </mat-chip>
               </td>
             </ng-container>
@@ -249,10 +249,10 @@ export class CourseAnalyticsComponent implements OnInit, OnDestroy {
 
   displayedColumns = ['name', 'progress', 'status', 'enrolledAt'];
 
-  enrollmentChartData: ChartData<'line'> = { labels: [], datasets: [] };
+  enrollmentChartData: ChartData<'bar'> = { labels: [], datasets: [] };
   progressChartData: ChartData<'doughnut'> = { labels: [], datasets: [] };
 
-  lineChartOptions: ChartConfiguration['options'] = {
+  barChartOptions: ChartConfiguration<'bar'>['options'] = {
     responsive: true, maintainAspectRatio: false,
     plugins: { legend: { display: false } },
     scales: {
@@ -275,12 +275,14 @@ export class CourseAnalyticsComponent implements OnInit, OnDestroy {
   private loadData(): void {
     forkJoin({
       analytics: this.api.getCourseAnalytics(this.courseId),
-      users: this.api.getCourseEnrolledUsers(this.courseId, 0, 50)
+      users: this.api.getCourseEnrolledUsers(this.courseId, 0, 50).pipe(
+        catchError(() => of({ content: [] }))
+      )
     }).pipe(takeUntil(this.destroy$)).subscribe({
       next: ({ analytics, users }) => {
         this.courseTitle.set(analytics.courseTitle || 'Course Analytics');
         this.analytics.set(analytics);
-        this.enrolledUsers.set(users.content);
+        this.enrolledUsers.set(users?.content ?? []);
         this.buildCharts(analytics);
         this.loading.set(false);
       },
@@ -289,19 +291,20 @@ export class CourseAnalyticsComponent implements OnInit, OnDestroy {
   }
 
   private buildCharts(data: any): void {
-    // Enrollment trend
-    const months = data.enrollmentTrend?.map((t: any) => t.date) ?? [];
-    const counts = data.enrollmentTrend?.map((t: any) => t.count) ?? [];
+    // Enrollment trend - map month/date to labels
+    const months = data.enrollmentTrend?.map((t: any) => t.month || t.date || '') ?? [];
+    const counts = data.enrollmentTrend?.map((t: any) => t.count || 0) ?? [];
+    
     this.enrollmentChartData = {
-      labels: months,
+      labels: months.length > 0 ? months : ['No data'],
       datasets: [{
         label: 'Enrollments',
-        data: counts,
+        data: counts.length > 0 ? counts : [0],
+        backgroundColor: 'rgba(59,130,246,.8)',
         borderColor: '#3b82f6',
-        backgroundColor: 'rgba(59,130,246,.15)',
-        fill: true,
-        tension: 0.4,
-        pointRadius: 4
+        borderWidth: 1,
+        borderRadius: 6,
+        barThickness: 40
       }]
     };
 
@@ -310,7 +313,11 @@ export class CourseAnalyticsComponent implements OnInit, OnDestroy {
     this.progressChartData = {
       labels: ['Completed', 'In Progress', 'Not Started'],
       datasets: [{
-        data: [dist.completed, dist.inProgress, dist.notStarted],
+        data: [
+          Number(dist.completed || 0),
+          Number(dist.inProgress || 0),
+          Number(dist.notStarted || 0)
+        ],
         backgroundColor: ['#10b981', '#f59e0b', '#64748b'],
         borderWidth: 0
       }]
@@ -318,7 +325,7 @@ export class CourseAnalyticsComponent implements OnInit, OnDestroy {
   }
 
   getInitials(name: string): string {
-    return name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'U';
+    return (name ?? '').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'U';
   }
 
   ngOnDestroy(): void {
