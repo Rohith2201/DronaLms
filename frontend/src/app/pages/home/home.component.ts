@@ -1,430 +1,483 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
 
 @Component({
-selector: 'app-home',
-standalone: true,
-imports:[
-CommonModule,
-RouterModule,
-MatButtonModule,
-MatIconModule,
-MatCardModule
-],
-template:`
+  selector: 'app-home',
+  standalone: true,
+  imports: [CommonModule, RouterModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+  <div class="landing">
 
-<div class="landing">
+    <!-- NAVBAR -->
+    <header class="navbar">
+      <div class="container nav-content">
+        <div class="logo">Drona LMS</div>
 
-<!-- ================= NAVBAR ================= -->
-<header class="navbar">
-<div class="logo">🚀 Drona LMS</div>
+        <nav class="nav-links">
+          <a href="#features">Features</a>
+          <a routerLink="/blogs">Blogs</a>
+          <a routerLink="/sitemap">Sitemap</a>
+        </nav>
 
-<nav>
-<a routerLink="/">Home</a>
-<a>Features</a>
-<a>Pricing</a>
-<a routerLink="/auth/login">Login</a>
+        <div class="auth-links">
+          <a routerLink="/verify-certificate">Verify</a>
+          <a routerLink="/auth/login" class="btn-outline">Login</a>
+          <a routerLink="/auth/register" class="btn-glow">Signup</a>
+        </div>
+      </div>
+    </header>
 
-<a mat-flat-button color="primary"
-routerLink="/auth/register">
-Get Started
-</a>
-</nav>
-</header>
+    <!-- HERO -->
+    <section class="hero container">
+      <div class="badge">🚀 AI Powered Learning is Live</div>
 
+      <h1>
+        Drona LMS –
+        <span>Learning Made Simple</span>
+      </h1>
 
-<!-- ================= HERO ================= -->
-<section class="hero container">
+      <p>
+      Ultimate LMS platform to manage courses, track progress, and engage learners with ease.
+      </p>
 
-<div class="hero-left">
+      <a routerLink="/auth/register" class="btn-glow large">
+        Start Exploring →
+      </a>
+    </section>
 
-<h1>
-AI Powered
-<span>Learning Platform</span>
-for the Future
-</h1>
+        <!-- FEATURES -->
+        <section id="features" class="section container">
+    
+          <h2 style="color: #ffffff;" class="section-title">A Smarter Way to Manage Learning</h2>
+    
+          <div class="grid-2">
+            <div class="glass-card">
+              <h3>Course Management</h3>
+              <p>
+                Create, organize, and deliver courses with structured modules,
+                lessons, and resources.
+              </p>
+            </div>
+    
+            <div class="glass-card">
+              <h3>Assignments & Quizzes</h3>
+              <p>
+                Build assessments, collect submissions, and evaluate learners
+                with automated and manual grading.
+              </p>
+            </div>
+          </div>
+    
+          <div class="grid-2 mt">
+            <div class="glass-card">
+              <h3>Live Classes & Discussions</h3>
+              <p>
+                Run interactive sessions and enable learner collaboration
+                through announcements and discussions.
+              </p>
+            </div>
+    
+            <div class="glass-card">
+              <h3>Progress Tracking & Reports</h3>
+              <p>
+                Monitor completion rates, performance trends, and engagement
+                with real-time analytics.
+              </p>
+            </div>
+          </div>
+    
+        </section>
+    
 
-<p>
-Drona LMS helps universities, instructors and learners
-build skills faster using artificial intelligence,
-real-time analytics and personalized learning paths.
-</p>
+    <!-- WHY CHOOSE -->
+    <section class="section container">
+      <h2 style="color: #ffffff;" class="section-title">Why Choose Drona LMS?</h2>
 
-<div class="hero-actions">
-<a mat-flat-button color="primary"
-routerLink="/auth/register">
-Start Free
-</a>
+      <div class="grid-3">
+        <div class="glass-card small">
+          <h4>Easy Course Creation</h4>
+          <p>Design and publish courses quickly with a structured content builder.</p>
+        </div>
 
-<a mat-stroked-button>
-Watch Demo
-</a>
-</div>
+        <div class="glass-card small">
+          <h4>Engaged Learning Experience</h4>
+          <p>Keep learners active with quizzes, assignments, discussions, and live sessions.</p>
+        </div>
 
-<div class="stats">
-<div><h3>50K+</h3><span>Learners</span></div>
-<div><h3>1200+</h3><span>Courses</span></div>
-<div><h3>95%</h3><span>Completion</span></div>
-</div>
+        <div class="glass-card small">
+          <h4>Actionable Insights</h4>
+          <p>Track learner progress, completion rates, and performance through smart reports.</p>
+        </div>
+      </div>
+    </section>
 
-</div>
+    <!-- CTA -->
+    <section class="cta container">
+      <h2 style="color: #ffffff;">Join thousands of successful learners</h2>
+      <a routerLink="/auth/register" class="btn-glow large">
+        Get Started Now
+      </a>
+    </section>
 
-<div class="hero-right">
-<img
-src="https://images.unsplash.com/photo-1581092795360-fd1ca04f0952"
-alt="AI Learning"/>
-</div>
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="container footer-grid">
 
-</section>
+        <div>
+          <h3>Drona LMS</h3>
+          <p>AI-powered learning for the next generation.</p>
+        </div>
 
+        <div>
+          <h4>Product</h4>
+          <a href="#features">Features</a>
+          <a routerLink="/verify-certificate">Verify Certificate</a>
+          <a routerLink="/blogs">Blogs</a>
+        </div>
 
-<!-- ================= TRUST ================= -->
-<section class="trust">
-<p>Trusted by modern learning communities</p>
+        <div>
+          <h4>Company</h4>
+          <a routerLink="/sitemap">Sitemap</a>
+          <a routerLink="/auth/login">Login</a>
+          <a routerLink="/auth/register">Signup</a>
+        </div>
 
-<div class="companies">
-<span>Google Developers</span>
-<span>AWS Academy</span>
-<span>Microsoft Learn</span>
-<span>Open Source</span>
-</div>
-</section>
+      </div>
 
+      <div class="footer-bottom">
+        © 2026 Drona LMS. All rights reserved.
+      </div>
+    </footer>
 
-<!-- ================= PRODUCT SHOWCASE ================= -->
-<section class="product container">
+  </div>
+  `,
+  styles: [`
 
-<div class="product-text">
-<h2>One Powerful Learning Dashboard</h2>
+  .landing {
+    background: #000;
+    color: white;
+    font-family: 'Inter', sans-serif;
+  }
 
-<p>
-Manage courses, monitor student progress,
-analyze performance and automate learning
-using AI insights.
-</p>
+  .container {
+    width: min(1100px, 92%);
+    margin: 0 auto;
+  }
 
-<ul>
-<li>✔ Real-time analytics</li>
-<li>✔ AI recommendations</li>
-<li>✔ Course automation</li>
-<li>✔ Certification system</li>
-</ul>
+  /* NAVBAR */
+  .navbar {
+    padding: 20px 0;
+    border-bottom: 1px solid #111;
+  }
 
-</div>
+  .nav-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 
-<div class="product-image">
-<img
-src="https://images.unsplash.com/photo-1551288049-bebda4e38f71"/>
-</div>
+  .logo {
+    font-weight: 700;
+    font-size: 1.2rem;
+    background: linear-gradient(90deg, #3b82f6, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
 
-</section>
+  .nav-links {
+    display: flex;
+    gap: 24px;
+    opacity: 0.8;
+  }
 
+  .auth-links {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
 
-<!-- ================= FEATURES ================= -->
-<section class="features container">
+  /* HERO */
+  .hero {
+    text-align: center;
+    padding: 100px 0;
+  }
 
-<h2>Why Drona LMS Wins</h2>
+  .badge {
+    display: inline-block;
+    padding: 6px 16px;
+    background: #111;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    margin-bottom: 20px;
+  }
 
-<div class="feature-grid">
+  .hero h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+  }
 
-<mat-card>
-<mat-icon>psychology</mat-icon>
-<h3>AI Tutor</h3>
-<p>Smart assistant guiding every learner.</p>
-</mat-card>
+  .hero h1 span {
+    background: linear-gradient(90deg, #3b82f6, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
 
-<mat-card>
-<mat-icon>analytics</mat-icon>
-<h3>Advanced Analytics</h3>
-<p>Track growth and engagement instantly.</p>
-</mat-card>
+  .hero p {
+    max-width: 600px;
+    margin: 0 auto 40px;
+    opacity: 0.7;
+  }
 
-<mat-card>
-<mat-icon>workspace_premium</mat-icon>
-<h3>Certifications</h3>
-<p>Industry-ready verified certificates.</p>
-</mat-card>
+  /* BUTTON */
+  .btn-glow {
+    background: linear-gradient(90deg, #3b82f6, #a855f7);
+    padding: 12px 24px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    transition: 0.3s;
+    display: inline-block;
+  }
 
-<mat-card>
-<mat-icon>groups</mat-icon>
-<h3>Collaboration</h3>
-<p>Interactive learning ecosystem.</p>
-</mat-card>
+  .btn-glow:hover {
+    box-shadow: 0 0 20px rgba(168,85,247,0.6);
+    transform: translateY(-2px);
+  }
 
-</div>
+  .btn-outline {
+    background: #000;
+    border: 1px solid #fff;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: 0.3s;
+    display: inline-block;
+  }
 
-</section>
+  .btn-outline:hover {
+    background: #111;
+    transform: translateY(-2px);
+  }
 
+  .large {
+    padding: 14px 32px;
+    font-size: 1rem;
+  }
 
-<!-- ================= USE CASE ================= -->
-<section class="usecase">
+  /* SECTIONS */
+  .section {
+    padding: 80px 0;
+  }
 
-<h2>Built For Every Learning Ecosystem</h2>
+  .section-title {
+    text-align: center;
+    margin-bottom: 40px;
+  }
 
-<div class="use-grid">
+  .purple {
+    color: #a855f7;
+  }
 
-<div>
-<h3>🎓 Universities</h3>
-<p>Digital campus learning infrastructure.</p>
-</div>
+  /* GRIDS */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+  }
 
-<div>
-<h3>👨‍🏫 Instructors</h3>
-<p>Create scalable AI-powered courses.</p>
-</div>
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+  }
 
-<div>
-<h3>🏢 Organizations</h3>
-<p>Upskill teams with intelligent learning.</p>
-</div>
+  .mt {
+    margin-top: 30px;
+  }
 
-</div>
+  /* GLASS CARD */
+  .glass-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 30px;
+    border-radius: 14px;
+    backdrop-filter: blur(8px);
+    transition: 0.3s;
+  }
 
-</section>
+  .glass-card:hover {
+    border-color: #a855f7;
+    transform: translateY(-5px);
+  }
 
+  .small {
+    padding: 20px;
+  }
 
-<!-- ================= CTA ================= -->
-<section class="cta">
+  /* CTA */
+  .cta {
+    text-align: center;
+    padding: 100px 0;
+  }
 
-<h2>Join The Future of Education</h2>
+  /* FOOTER */
+  .footer {
+    border-top: 1px solid #111;
+    padding: 60px 0 30px;
+  }
 
-<a mat-flat-button color="primary"
-routerLink="/auth/register">
-Launch Your Learning Platform
-</a>
+  .footer-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+  }
 
-</section>
+  .footer a {
+    display: block;
+    margin-top: 8px;
+    opacity: 0.7;
+  }
 
+  .footer-bottom {
+    text-align: center;
+    margin-top: 40px;
+    opacity: 0.6;
+    font-size: 0.85rem;
+  }
 
-<!-- ================= FOOTER ================= -->
-<footer>
+  @media (max-width: 900px) {
+    .grid-2,
+    .grid-3,
+    .footer-grid {
+      grid-template-columns: 1fr;
+    }
 
-<div class="footer-grid">
-
-<div>
-<h3>Drona LMS</h3>
-<p>AI Driven Education Platform</p>
-</div>
-
-<div>
-<h4>Product</h4>
-<p>Features</p>
-<p>Pricing</p>
-<p>Security</p>
-</div>
-
-<div>
-<h4>Company</h4>
-<p>About</p>
-<p>Careers</p>
-<p>Contact</p>
-</div>
-
-</div>
-
-<p class="copyright">
-© 2026 Drona LMS — Silicon Valley Inspired
-</p>
-
-</footer>
-
-</div>
-`,
-styles:[`
-
-/* GLOBAL */
-
-.landing{
-background:#020617;
-color:white;
-font-family:Inter,system-ui;
+    .hero h1 {
+      font-size: 2.2rem;
+    }
+  }
+    .landing {
+  background: #000;
+  color: #f5f5f5; /* Strong readable white */
+  font-family: 'Inter', sans-serif;
 }
 
-.container{
-max-width:1200px;
-margin:auto;
-padding:100px 24px;
+a {
+  color: #e5e7eb;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #ffffff;
 }
 
 /* NAVBAR */
-
-.navbar{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:20px 40px;
-position:sticky;
-top:0;
-background:#020617cc;
-backdrop-filter:blur(12px);
-z-index:10;
+.navbar {
+  padding: 20px 0;
+  border-bottom: 1px solid #1f2937;
+  background: #000;
 }
 
-nav{
-display:flex;
-gap:24px;
-align-items:center;
+.logo {
+  font-weight: 700;
+  font-size: 1.2rem;
+  background: linear-gradient(90deg, #3b82f6, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-nav a{
-color:white;
-text-decoration:none;
-opacity:.8;
+.nav-links a {
+  color: #d1d5db;
+}
+
+.nav-links a:hover {
+  color: #ffffff;
+}
+
+.auth-links a {
+  color: #d1d5db;
 }
 
 /* HERO */
-
-.hero{
-display:grid;
-grid-template-columns:1.1fr 1fr;
-align-items:center;
-gap:60px;
-min-height:85vh;
+.hero {
+  text-align: center;
+  padding: 100px 0;
 }
 
-.hero h1{
-font-size:60px;
-font-weight:900;
-line-height:1.1;
+.hero h1 {
+  font-size: 3rem;
+  margin-bottom: 20px;
+  color: #ffffff; /* Explicit white */
 }
 
-.hero span{
-background:linear-gradient(90deg,#6366f1,#a855f7);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
+.hero p {
+  max-width: 600px;
+  margin: 0 auto 40px;
+  color: #cbd5e1; /* Brighter gray */
 }
 
-.hero-right img{
-width:100%;
-border-radius:16px;
-box-shadow:0 30px 80px rgba(0,0,0,.6);
+/* BADGE */
+.badge {
+  display: inline-block;
+  padding: 6px 16px;
+  background: #111827;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  margin-bottom: 20px;
+  color: #e5e7eb;
 }
 
-.hero-actions{
-margin-top:24px;
-display:flex;
-gap:16px;
+/* GLASS CARD FIX */
+.glass-card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 30px;
+  border-radius: 14px;
+  backdrop-filter: blur(8px);
+  transition: 0.3s;
+  color: #f3f4f6; /* Force readable */
 }
 
-.stats{
-display:flex;
-gap:40px;
-margin-top:40px;
+.glass-card h3,
+.glass-card h4 {
+  color: #ffffff;
 }
 
-.stats h3{
-color:#818cf8;
+.glass-card p {
+  color: #cbd5e1;
 }
 
-/* TRUST */
-
-.trust{
-text-align:center;
-padding:50px;
-opacity:.8;
+/* FOOTER FIX */
+.footer {
+  border-top: 1px solid #1f2937;
+  padding: 60px 0 30px;
+  background: #000;
+  color: #d1d5db;
 }
 
-.companies{
-display:flex;
-justify-content:center;
-gap:40px;
-flex-wrap:wrap;
-margin-top:20px;
+.footer h3,
+.footer h4 {
+  color: #ffffff;
 }
 
-/* PRODUCT */
-
-.product{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:60px;
-align-items:center;
+.footer a {
+  color: #9ca3af;
 }
 
-.product-image img{
-width:100%;
-border-radius:16px;
+.footer a:hover {
+  color: #ffffff;
 }
 
-/* FEATURES */
-
-.feature-grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-gap:30px;
-margin-top:40px;
+.footer-bottom {
+  text-align: center;
+  margin-top: 40px;
+  color: #6b7280;
+  font-size: 0.85rem;
 }
 
-mat-card{
-padding:40px;
-background:rgba(255,255,255,.04);
-}
-
-/* USECASE */
-
-.usecase{
-text-align:center;
-padding:120px 20px;
-background:#030712;
-}
-
-.use-grid{
-display:flex;
-justify-content:center;
-gap:60px;
-flex-wrap:wrap;
-margin-top:40px;
-}
-
-/* CTA */
-
-.cta{
-text-align:center;
-padding:120px 20px;
-background:linear-gradient(135deg,#4f46e5,#9333ea);
-}
-
-.cta h2{
-font-size:42px;
-margin-bottom:20px;
-}
-
-/* FOOTER */
-
-footer{
-background:#01030a;
-padding:80px 40px;
-}
-
-.footer-grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-gap:40px;
-}
-
-copyright{
-text-align:center;
-margin-top:40px;
-opacity:.6;
-}
-
-/* RESPONSIVE */
-
-@media(max-width:900px){
-.hero,
-.product{
-grid-template-columns:1fr;
-text-align:center;
-}
-.stats{
-justify-content:center;
-}
-}
-
-`]
+  `]
 })
 export class HomeComponent {}

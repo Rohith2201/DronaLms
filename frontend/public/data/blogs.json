@@ -1,0 +1,38 @@
+[
+  {
+    "title": "How AI Learning Paths Improve Completion Rates",
+    "summary": "A practical guide to using adaptive sequencing and recommendation signals for higher course completion.",
+    "category": "Learning Design",
+    "readTime": "6 min read",
+    "author": "Drona Editorial",
+    "publishedOn": "Feb 26, 2026",
+    "link": "https://example.com/blog/ai-learning-paths"
+  },
+  {
+    "title": "Instructor Playbook: Launch a Cohort in 1 Day",
+    "summary": "Step-by-step setup for modules, assessments, and student onboarding workflows.",
+    "category": "Instructor",
+    "readTime": "5 min read",
+    "author": "Priya Sharma",
+    "publishedOn": "Feb 18, 2026",
+    "link": "https://example.com/blog/instructor-playbook"
+  },
+  {
+    "title": "Building a Skills-First Dashboard for Universities",
+    "summary": "Key metrics and reporting widgets that help institutions track learner outcomes effectively.",
+    "category": "Analytics",
+    "readTime": "7 min read",
+    "author": "Arjun Mehta",
+    "publishedOn": "Jan 30, 2026",
+    "link": "https://example.com/blog/skills-first-dashboard"
+  },
+  {
+    "title": "Certification Automation: From Quiz to Verified Badge",
+    "summary": "Automate completion rules and issue shareable certificates without manual operations.",
+    "category": "Operations",
+    "readTime": "4 min read",
+    "author": "Drona Product Team",
+    "publishedOn": "Jan 21, 2026",
+    "link": "https://example.com/blog/certification-automation"
+  }
+]
