@@ -17,6 +17,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatCardModule } from '@angular/material/card';
+import { MatDividerModule } from '@angular/material/divider';
 import { Subject, takeUntil, debounceTime } from 'rxjs';
 import { ApiService } from '../../../core/api-services/api.service';
 import { Course, EntityId } from '../../../core/models';
@@ -28,7 +29,7 @@ import { Course, EntityId } from '../../../core/models';
     CommonModule, RouterModule, ReactiveFormsModule,
     MatIconModule, MatButtonModule, MatInputModule, MatFormFieldModule,
     MatMenuModule, MatSelectModule, MatProgressBarModule, MatTooltipModule, MatDialogModule,
-    MatTableModule, MatChipsModule, MatCardModule
+    MatTableModule, MatChipsModule, MatCardModule, MatDividerModule
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
