@@ -1,6 +1,8 @@
 package com.drona.lms.domain.repository;
 
 import com.drona.lms.domain.entity.Course;
+import com.drona.lms.domain.entity.User;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -43,4 +45,6 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
             @Param("level") String level,
             Pageable pageable
     );
+    
+    List<Course> findByInstructor(User instructor);
 }

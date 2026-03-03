@@ -42,6 +42,18 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
 
   private loadCourse(courseId: EntityId): void {
     this.api.getCourse(courseId).subscribe(course => {
+      // Load completed lessons from localStorage for this course
+      const completedLessons = this.getCompletedLessonsFromStorage(courseId);
+      
+      // Mark lessons as completed based on stored data
+      course.modules.forEach(module => {
+        module.lessons.forEach(lesson => {
+          if (completedLessons.includes(String(lesson.id))) {
+            lesson.isCompleted = true;
+          }
+        });
+      });
+      
       this.course = course;
       this.store.setActiveCourse(course);
 
@@ -49,6 +61,17 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
       this.api.getMyEnrollments().subscribe(enrollments => {
         this.enrollment = enrollments.find(e => String(e.courseId) === String(courseId));
         if (this.enrollment) {
+          // Calculate actual lesson counts from course structure
+          const totalLessons = course.modules.reduce((sum, m) => sum + m.lessons.length, 0);
+          const completedCount = completedLessons.length;
+          
+          // Update enrollment with actual counts
+          this.enrollment.totalLessons = totalLessons;
+          this.enrollment.completedLessons = completedCount;
+          this.enrollment.progressPercent = totalLessons > 0 
+            ? Math.round((completedCount / totalLessons) * 100) 
+            : 0;
+          
           this.store.setActiveEnrollment(this.enrollment);
 
           // Navigate to last watched lesson
@@ -64,6 +87,30 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       });
     });
+  }
+  
+  private getCompletedLessonsFromStorage(courseId: EntityId): string[] {
+    try {
+      const key = `completed_lessons_${courseId}`;
+      const stored = localStorage.getItem(key);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  }
+  
+  private saveCompletedLessonToStorage(courseId: EntityId, lessonId: EntityId): void {
+    try {
+      const key = `completed_lessons_${courseId}`;
+      const completed = this.getCompletedLessonsFromStorage(courseId);
+      const lessonIdStr = String(lessonId);
+      if (!completed.includes(lessonIdStr)) {
+        completed.push(lessonIdStr);
+        localStorage.setItem(key, JSON.stringify(completed));
+      }
+    } catch (err) {
+      console.error('Error saving lesson completion to localStorage:', err);
+    }
   }
 
   loadLesson(lessonId: EntityId): void {
@@ -85,15 +132,31 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
   }
 
   onLessonComplete(): void {
-    if (!this.enrollment || !this.activeLesson) return;
+    if (!this.enrollment || !this.activeLesson || !this.course) return;
+    
+    // Mark lesson as completed in localStorage
+    this.saveCompletedLessonToStorage(this.course.id, this.activeLesson.id);
+    
+    // Update local state
+    this.activeLesson.isCompleted = true;
+    
+    // Recalculate progress
+    const completedLessons = this.getCompletedLessonsFromStorage(this.course.id);
+    const totalLessons = this.course.modules.reduce((sum, m) => sum + m.lessons.length, 0);
+    this.enrollment.completedLessons = completedLessons.length;
+    this.enrollment.totalLessons = totalLessons;
+    this.enrollment.progressPercent = totalLessons > 0 
+      ? Math.round((completedLessons.length / totalLessons) * 100) 
+      : 0;
+    
     this.progress.markComplete(this.enrollment.id, this.activeLesson.id).subscribe({
       next: (updated) => {
-        this.enrollment = updated;
-        
-        // Update the active lesson's completed status
-        if (this.activeLesson) {
-          this.activeLesson.isCompleted = true;
-        }
+        this.enrollment = {
+          ...updated,
+          totalLessons: this.enrollment!.totalLessons,
+          completedLessons: this.enrollment!.completedLessons,
+          progressPercent: this.enrollment!.progressPercent
+        };
         
         this.notif.success('Lesson completed! 🎉', 'Keep going!');
         this.cdr.markForCheck();
@@ -104,6 +167,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error('Error marking lesson complete:', err);
         this.notif.error('Failed to mark lesson complete', 'Please try again');
+        this.cdr.markForCheck();
       }
     });
   }

@@ -22,11 +22,6 @@ import { Lesson } from '../../core/models';
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowfullscreen>
         </iframe>
-        <div class="video-actions">
-          <button mat-flat-button color="primary" (click)="onMarkComplete()">
-            <mat-icon>check_circle</mat-icon> Mark as Complete
-          </button>
-        </div>
       </div>
 
       <!-- VIDEO - Direct File (mp4, webm, etc.) -->
@@ -41,21 +36,11 @@ import { Lesson } from '../../core/models';
       <!-- TEXT / ARTICLE -->
       <div *ngIf="lesson?.type === 'TEXT'" class="text-lesson scroll-y">
         <div class="text-lesson-content" [innerHTML]="lesson?.contentText || lesson?.textContent"></div>
-        <div class="text-lesson-actions">
-          <button mat-flat-button color="primary" (click)="onMarkComplete()">
-            <mat-icon>check_circle</mat-icon> Mark as Complete
-          </button>
-        </div>
       </div>
 
       <!-- PDF -->
       <div *ngIf="lesson?.type === 'PDF'" class="pdf-lesson">
         <iframe *ngIf="pdfUrl" [src]="pdfUrl" class="pdf-frame"></iframe>
-        <div class="pdf-actions">
-          <button mat-flat-button color="primary" (click)="onMarkComplete()">
-            <mat-icon>check_circle</mat-icon> Mark as Complete
-          </button>
-        </div>
       </div>
 
       <!-- QUIZ -->
@@ -87,12 +72,6 @@ import { Lesson } from '../../core/models';
       max-height: calc(100vh - 56px - 80px);
     }
 
-    .video-actions {
-      padding: var(--space-4);
-      background: var(--bg-surface);
-      border-top: 1px solid var(--border);
-    }
-
     .text-lesson {
       flex: 1;
       background: var(--bg-base);
@@ -108,13 +87,6 @@ import { Lesson } from '../../core/models';
       color: var(--text-primary);
     }
 
-    .text-lesson-actions {
-      max-width: 800px;
-      margin: var(--space-8) auto 0;
-      padding-top: var(--space-6);
-      border-top: 1px solid var(--border);
-    }
-
     .pdf-lesson {
       flex: 1;
       display: flex;
@@ -125,12 +97,6 @@ import { Lesson } from '../../core/models';
       flex: 1;
       border: none;
       width: 100%;
-    }
-
-    .pdf-actions {
-      padding: var(--space-4);
-      background: var(--bg-surface);
-      border-top: 1px solid var(--border);
     }
 
     .quiz-lesson {

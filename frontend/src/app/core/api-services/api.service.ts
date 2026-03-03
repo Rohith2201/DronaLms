@@ -312,27 +312,46 @@ export class ApiService {
   }
 
   getInstructorAnalytics(): Observable<InstructorAnalytics> {
-    return this.getInstructorCourses(0, 100).pipe(
-      map(page => ({
-        totalStudents: 0,
-        totalCourses: page.content?.length ?? 0,
-        avgCompletionRate: 0,
-        avgRating: 0,
-        topCourses: page.content ?? [],
-        enrollmentTrend: []
-      }))
-    );
+    return this.http.get<any>(`${this.base}/instructor/analytics`);
   }
 
   // ─── Course Analytics (Instructor) ─────────────────────────────────────────
 
   getCourseAnalytics(courseId: EntityId): Observable<any> {
-    return this.http.get<any>(`${this.base}/courses/${courseId}/analytics`);
+    return this.http.get<any>(`${this.base}/courses/${courseId}/analytics`).pipe(
+      map(response => ({
+        ...response,
+        totalEnrolled: response?.totalEnrolled ?? response?.totalEnrollments ?? 0,
+        averageScore: response?.averageScore ?? response?.averageProgress ?? 0,
+        enrollmentTrend: response?.enrollmentTrend ?? response?.enrollmentTrends ?? [],
+        averageRating: response?.averageRating ?? 0
+      }))
+    );
   }
 
   getCourseEnrolledUsers(courseId: EntityId, page = 0, size = 50): Observable<any> {
     const params = new HttpParams().set('page', String(page)).set('size', String(size));
-    return this.http.get<any>(`${this.base}/courses/${courseId}/enrolled-users`, { params });
+    return this.http.get<any>(`${this.base}/courses/${courseId}/enrolled-users`, { params }).pipe(
+      map(response => {
+        const users = Array.isArray(response?.content)
+          ? response.content
+          : Array.isArray(response)
+            ? response
+            : [];
+
+        return {
+          ...response,
+          content: users.map((user: any) => ({
+            ...user,
+            name: user?.name ?? user?.userName ?? 'Student',
+            email: user?.email ?? user?.userEmail ?? '-',
+            progress: Number(user?.progress ?? user?.progressPercent ?? 0),
+            completionStatus: user?.completionStatus ?? this.mapEnrollmentStatus(user?.status),
+            enrolledAt: user?.enrolledAt ?? user?.createdAt
+          }))
+        };
+      })
+    );
   }
 
   // ─── Module & Lesson Public Access ────────────────────────────────────────
@@ -418,6 +437,19 @@ export class ApiService {
     const page = params?.page ?? 0;
     const size = params?.size ?? 10;
     return of({ content: [], totalElements: 0, totalPages: 0, size, number: page, first: true, last: true });
+  }
+
+  private mapEnrollmentStatus(status?: string): 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' {
+    switch (status) {
+      case 'COMPLETED':
+        return 'COMPLETED';
+      case 'ACTIVE':
+      case 'IN_PROGRESS':
+        return 'IN_PROGRESS';
+      case 'NOT_STARTED':
+      default:
+        return 'NOT_STARTED';
+    }
   }
 
   getAdminUsers(page = 0, size = 10, search = '', role = ''): Observable<Page<User>> {
@@ -509,8 +541,13 @@ export class ApiService {
     };
   }
 
-  private mapEnrollment(enrollment: Enrollment): Enrollment {
+  private mapEnrollment(enrollment: Enrollment, course?: CourseDetail): Enrollment {
     const progress = Number((enrollment as any).progressPercent ?? 0);
+    // Calculate actual lesson counts from course if available
+    const actualTotalLessons = course?.modules?.reduce((sum, mod) => sum + (mod.lessons?.length || 0), 0) || 0;
+    const actualCompletedLessons = course?.modules?.reduce((sum, mod) => 
+      sum + (mod.lessons?.filter(l => l.isCompleted)?.length || 0), 0) || 0;
+    
     return {
       ...enrollment,
       userId: (enrollment as any).userId ?? (enrollment as any).studentId,
@@ -519,8 +556,8 @@ export class ApiService {
       completed: (enrollment as any).completed ?? progress >= 100,
       completedAt: (enrollment as any).completedAt ?? (enrollment as any).completionDate,
       completionDate: (enrollment as any).completionDate ?? (enrollment as any).completedAt,
-      completedLessons: (enrollment as any).completedLessons ?? Math.round(progress),
-      totalLessons: (enrollment as any).totalLessons ?? 100
+      completedLessons: actualCompletedLessons || ((enrollment as any).completedLessons ?? 0),
+      totalLessons: actualTotalLessons || ((enrollment as any).totalLessons ?? 0)
     };
   }
 

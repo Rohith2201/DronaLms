@@ -33,7 +33,7 @@ import { QuizDialogComponent } from './quiz-dialog.component';
     <div class="manage-content">
       <!-- Header -->
       <div class="page-header">
-        <button mat-icon-button routerLink="/instructor/courses" class="back-btn">
+        <button mat-icon-button routerLink="/admin/courses" class="back-btn">
           <mat-icon>arrow_back</mat-icon>
         </button>
         <div class="header-info">

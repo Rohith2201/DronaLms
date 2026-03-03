@@ -1,6 +1,7 @@
 package com.drona.lms.domain.repository;
 
 import com.drona.lms.domain.entity.Enrollment;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -31,10 +32,10 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID> {
 	@Query("SELECT COUNT(e) FROM Enrollment e WHERE e.course.id = :courseId AND e.progressPercent = 0")
 	Long countNotStartedByCourseId(@Param("courseId") UUID courseId);
 	
-	@Query("SELECT FUNCTION('TO_CHAR', e.enrolledAt, 'YYYY-MM') as month, COUNT(e) as count " +
+	@Query("SELECT FUNCTION('TO_CHAR', e.enrolledAt, 'Month YYYY') as month, COUNT(e) as count " +
 	       "FROM Enrollment e WHERE e.course.id = :courseId " +
-	       "GROUP BY FUNCTION('TO_CHAR', e.enrolledAt, 'YYYY-MM') " +
-	       "ORDER BY month DESC")
-	Object[] getMonthlyEnrollmentTrends(@Param("courseId") UUID courseId);
+	       "GROUP BY FUNCTION('TO_CHAR', e.enrolledAt, 'YYYY-MM'), FUNCTION('TO_CHAR', e.enrolledAt, 'Month YYYY') " +
+	       "ORDER BY FUNCTION('TO_CHAR', e.enrolledAt, 'YYYY-MM') DESC")
+	List<Object[]> getMonthlyEnrollmentTrends(@Param("courseId") UUID courseId);
 }
 
