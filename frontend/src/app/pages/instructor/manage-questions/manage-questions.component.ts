@@ -336,8 +336,12 @@ export class ManageQuestionsComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result) {
         if (question) {
-          // Update existing question
-          this.api.updateQuestion(question.id, result).pipe(takeUntil(this.destroy$)).subscribe({
+          // Update existing question - preserve position field
+          const questionData = {
+            ...result,
+            position: question.position
+          };
+          this.api.updateQuestion(question.id, questionData).pipe(takeUntil(this.destroy$)).subscribe({
             next: (updated) => {
               const index = this.questions().findIndex(q => q.id === question.id);
               if (index !== -1) {
@@ -353,10 +357,12 @@ export class ManageQuestionsComponent implements OnInit, OnDestroy {
             }
           });
         } else {
-          // Create new question - add position field
+          // Create new question - calculate next available position
+          const existingPositions = this.questions().map(q => q.position || 0);
+          const maxPosition = existingPositions.length > 0 ? Math.max(...existingPositions) : 0;
           const questionData = {
             ...result,
-            position: this.questions().length + 1
+            position: maxPosition + 1
           };
           this.api.createQuestion(this.quizId, questionData).pipe(takeUntil(this.destroy$)).subscribe({
             next: (newQuestion) => {

@@ -1,0 +1,147 @@
+<div class="result-container" *ngIf="result() as resultData">
+  <!-- Header Section -->
+  <div class="result-header">
+    <div class="header-content">
+      <mat-icon class="result-icon" [class.passed]="resultData.passed" [class.failed]="!resultData.passed">
+        {{ resultData.passed ? 'check_circle' : 'cancel' }}
+      </mat-icon>
+      <h1>{{ resultData.passed ? 'Congratulations!' : 'Keep Trying!' }}</h1>
+      <p class="subtitle">{{ resultData.quiz.title }}</p>
+    </div>
+  </div>
+
+  <!-- Score Summary Cards -->
+  <div class="score-summary">
+    <mat-card class="summary-card score-card">
+      <mat-icon>grade</mat-icon>
+      <div class="card-content">
+        <h2>{{ resultData.percentage.toFixed(1) }}%</h2>
+        <p>Score</p>
+      </div>
+    </mat-card>
+
+    <mat-card class="summary-card">
+      <mat-icon>timer</mat-icon>
+      <div class="card-content">
+        <h2>{{ formatTime(resultData.timeTaken) }}</h2>
+        <p>Time Taken</p>
+      </div>
+    </mat-card>
+
+    <mat-card class="summary-card">
+      <mat-icon>check_circle</mat-icon>
+      <div class="card-content">
+        <h2>{{ resultData.correctCount }}/{{ resultData.questions.length }}</h2>
+        <p>Correct Answers</p>
+      </div>
+    </mat-card>
+
+    <mat-card class="summary-card">
+      <mat-icon>emoji_events</mat-icon>
+      <div class="card-content">
+        <h2>{{ resultData.score }}/{{ resultData.totalPoints }}</h2>
+        <p>Points Earned</p>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Status Badge -->
+  <div class="status-badge" [class.passed]="resultData.passed">
+    <mat-icon>{{ resultData.passed ? 'check_circle' : 'cancel' }}</mat-icon>
+    <span>{{ resultData.passed ? 'PASSED' : 'FAILED' }} - Required: {{ resultData.quiz.passingScore }}%</span>
+  </div>
+
+  <!-- Detailed Answers Section -->
+  <div class="answers-section">
+    <h2 class="section-title">
+      <mat-icon>list</mat-icon>
+      Detailed Answer Review
+    </h2>
+
+    <div class="questions-review">
+      <mat-card 
+        *ngFor="let question of resultData.questions; let i = index" 
+        class="question-review-card"
+        [class.correct]="isAnswerCorrect(question, getUserAnswer(i))"
+        [class.incorrect]="!isAnswerCorrect(question, getUserAnswer(i))">
+        
+        <!-- Question Header -->
+        <div class="question-header">
+          <div class="question-number">
+            <mat-icon [class.correct]="isAnswerCorrect(question, getUserAnswer(i))" 
+                      [class.incorrect]="!isAnswerCorrect(question, getUserAnswer(i))">
+              {{ isAnswerCorrect(question, getUserAnswer(i)) ? 'check_circle' : 'cancel' }}
+            </mat-icon>
+            <span>Question {{ i + 1 }}</span>
+          </div>
+          <mat-chip class="points-chip" [class.earned]="isAnswerCorrect(question, getUserAnswer(i))">
+            {{ isAnswerCorrect(question, getUserAnswer(i)) ? '+' : '0' }}{{ question.points }} pts
+          </mat-chip>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <!-- Question Text -->
+        <div class="question-content">
+          <h3>{{ question.text }}</h3>
+          <p class="question-type">{{ question.type }}</p>
+        </div>
+
+        <!-- Answer Comparison -->
+        <div class="answer-comparison">
+          <!-- User's Answer -->
+          <div class="answer-box user-answer" [class.correct]="isAnswerCorrect(question, getUserAnswer(i))"
+                                              [class.incorrect]="!isAnswerCorrect(question, getUserAnswer(i))">
+            <div class="answer-label">
+              <mat-icon>person</mat-icon>
+              <span>Your Answer</span>
+            </div>
+            <div class="answer-text">
+              {{ getUserAnswerText(question, getUserAnswer(i)) }}
+            </div>
+          </div>
+
+          <!-- Correct Answer -->
+          <div class="answer-box correct-answer">
+            <div class="answer-label">
+              <mat-icon>check</mat-icon>
+              <span>Correct Answer</span>
+            </div>
+            <div class="answer-text">
+              {{ getCorrectOptionText(question) }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Explanation (if available) -->
+        <div class="explanation" *ngIf="question.correctAnswer">
+          <mat-icon>info</mat-icon>
+          <p>
+            <ng-container *ngIf="isAnswerCorrect(question, getUserAnswer(i))">
+              Great job! Your answer is correct.
+            </ng-container>
+            <ng-container *ngIf="!isAnswerCorrect(question, getUserAnswer(i))">
+              Review the correct answer above.
+            </ng-container>
+          </p>
+        </div>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-buttons">
+    <button mat-stroked-button (click)="router.navigate(['/student/courses'])">
+      <mat-icon>arrow_back</mat-icon>
+      Back to Courses
+    </button>
+    <button mat-flat-button color="primary" (click)="router.navigate(['/learn', resultData.quiz.moduleId])">
+      <mat-icon>school</mat-icon>
+      Continue Learning
+    </button>
+  </div>
+</div>
+
+<div class="loading-container" *ngIf="loading()">
+  <p>Loading results...</p>
+</div>

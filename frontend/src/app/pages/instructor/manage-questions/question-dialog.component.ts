@@ -349,17 +349,52 @@ export class QuestionDialogComponent {
       const questionData: any = {
         questionText: formValue.questionText,
         questionType: formValue.questionType,
-        points: formValue.points,
-        correctAnswer: formValue.correctAnswer || null
+        points: formValue.points
       };
 
-      // Convert options array to JSON string for backend
-      if (this.showOptions() && formValue.options && formValue.options.length > 0) {
-        const optionsArray = formValue.options.map((opt: any) => ({
-          text: opt.optionText,
-          isCorrect: opt.isCorrect || false
-        }));
-        questionData.optionsJson = JSON.stringify(optionsArray);
+      // Determine and set correct answer based on question type
+      const questionType = formValue.questionType;
+
+      if (questionType === 'MCQ_SINGLE' || questionType === 'MCQ_MULTIPLE') {
+        // For MCQ types, find correct options from the options array
+        if (formValue.options && formValue.options.length > 0) {
+          const optionsArray = formValue.options.map((opt: any, index: number) => ({
+            id: index,
+            text: opt.optionText,
+            isCorrect: opt.isCorrect || false
+          }));
+          
+          questionData.optionsJson = JSON.stringify(optionsArray);
+
+          // Set correctAnswer based on correct options
+          const correctOptions = optionsArray.filter(opt => opt.isCorrect);
+          if (correctOptions.length > 0) {
+            if (questionType === 'MCQ_SINGLE') {
+              // Single correct answer - store the text of the correct option
+              questionData.correctAnswer = correctOptions[0].text;
+            } else {
+              // Multiple correct answers - store comma-separated texts
+              questionData.correctAnswer = correctOptions.map(opt => opt.text).join(',');
+            }
+          } else {
+            questionData.correctAnswer = null;
+          }
+        }
+      } else if (questionType === 'TRUE_FALSE') {
+        // For True/False, set correct answer from options
+        if (formValue.options && formValue.options.length > 0) {
+          const optionsArray = formValue.options.map((opt: any) => ({
+            text: opt.optionText,
+            isCorrect: opt.isCorrect || false
+          }));
+          questionData.optionsJson = JSON.stringify(optionsArray);
+
+          const correctOption = optionsArray.find(opt => opt.isCorrect);
+          questionData.correctAnswer = correctOption ? correctOption.text.toLowerCase() : null;
+        }
+      } else if (questionType === 'SHORT_ANSWER') {
+        // For short answer, use the correctAnswer field directly
+        questionData.correctAnswer = formValue.correctAnswer || null;
       }
 
       this.dialogRef.close(questionData);

@@ -177,10 +177,17 @@ export interface Quiz {
 export interface Question {
   id: EntityId;
   quizId: EntityId;
-  text: string;
-  type: 'SINGLE' | 'MULTIPLE' | 'TRUE_FALSE';
-  options: QuizOption[];
+  questionText: string;  // Backend field name
+  questionType: 'MCQ_SINGLE' | 'MCQ_MULTIPLE' | 'TRUE_FALSE' | 'SHORT_ANSWER';  // Backend field name
+  options?: QuizOption[];
+  optionsJson?: string;
+  correctAnswer?: string;
   points: number;
+  position?: number;
+  
+  // Computed/display helpers (not from backend)
+  text?: string;  // Alias for questionText for easier template access
+  type?: string;  // Alias for questionType for easier template access
 }
 
 export interface QuizOption {

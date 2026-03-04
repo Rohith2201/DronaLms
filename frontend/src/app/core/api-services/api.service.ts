@@ -5,7 +5,7 @@ import { environment } from '@environments/environment';
 import {
   Course, CourseDetail, Page, PageRequest,
   CourseModule, Lesson, Enrollment, ProgressUpdateRequest,
-  Quiz, QuizSubmission, QuizResult, Certificate, CertificateEligibility,
+  Quiz, Question, QuizSubmission, QuizResult, Certificate, CertificateEligibility,
   InstructorAnalytics, AdminAnalytics, StudentDashboard,
   AiChatRequest, AiChatResponse, User, EntityId
 } from '../models';
@@ -353,6 +353,21 @@ export class ApiService {
     );
   }
 
+  getQuizById(quizId: EntityId): Observable<Quiz> {
+    return this.http.get<Quiz>(`${this.base}/quizzes/${quizId}`).pipe(
+      switchMap(quiz => this.getQuestionsByQuiz(quizId).pipe(
+        map(questions => ({ ...quiz, questions }))
+      ))
+    );
+  }
+
+  getQuestionsByQuiz(quizId: EntityId): Observable<Question[]> {
+    const params = new HttpParams().set('page', '0').set('size', '100');
+    return this.http.get<Page<Question>>(`${this.base}/questions/quiz/${quizId}`, { params }).pipe(
+      map(page => page?.content ?? [])
+    );
+  }
+
   createQuiz(moduleId: EntityId, data: any): Observable<any> {
     return this.http.post<any>(`${this.base}/quizzes/module/${moduleId}`, data);
   }
@@ -366,13 +381,6 @@ export class ApiService {
   }
 
   // ─── Question Management (Instructor/Admin) ────────────────────────────────
-
-  getQuestionsByQuiz(quizId: EntityId): Observable<any[]> {
-    const params = new HttpParams().set('page', '0').set('size', '200');
-    return this.http.get<Page<any>>(`${this.base}/questions/quiz/${quizId}`, { params }).pipe(
-      map(page => page?.content ?? [])
-    );
-  }
 
   createQuestion(quizId: EntityId, data: any): Observable<any> {
     return this.http.post<any>(`${this.base}/questions/quiz/${quizId}`, data);

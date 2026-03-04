@@ -36,6 +36,30 @@ const routes: Routes = [
       .then(m => m.AuthLayoutModule)
   },
 
+  // Course player (full-screen, no sidebar)
+  {
+    path: 'learn/:courseId',
+    canActivate: [AuthGuard],
+    loadChildren: () => import('./pages/student/course-player/course-player.module')
+      .then(m => m.CoursePlayerModule)
+  },
+
+  // Quiz taking (full-screen) - MUST come before MainLayoutModule catch-all
+  {
+    path: 'student/quiz/:quizId',
+    canActivate: [AuthGuard],
+    loadComponent: () => import('./pages/student/take-quiz/take-quiz.component')
+      .then(m => m.TakeQuizComponent)
+  },
+
+  // Quiz result
+  {
+    path: 'student/quiz-result/:quizId',
+    canActivate: [AuthGuard],
+    loadComponent: () => import('./pages/student/quiz-result/quiz-result.component')
+      .then(m => m.QuizResultComponent)
+  },
+
   // Main app shell — handles all /student, /instructor, /admin paths
   // Role protection is applied per-child inside MainLayoutModule
   {
@@ -43,14 +67,6 @@ const routes: Routes = [
     canActivate: [AuthGuard],
     loadChildren: () => import('./layouts/main-layout/main-layout.module')
       .then(m => m.MainLayoutModule)
-  },
-
-  // Course player (full-screen, no sidebar)
-  {
-    path: 'learn/:courseId',
-    canActivate: [AuthGuard],
-    loadChildren: () => import('./pages/student/course-player/course-player.module')
-      .then(m => m.CoursePlayerModule)
   },
 
   // Error pages
