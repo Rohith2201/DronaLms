@@ -101,6 +101,7 @@ export interface CourseModule {
   order: number;
   isLocked: boolean;
   lessons: Lesson[];
+  quizzes?: Quiz[];
   completedLessons?: number;
   totalLessons?: number;
 }
@@ -163,11 +164,14 @@ export interface ProgressUpdateRequest {
 // ─── Quiz ───────────────────────────────────────────────────
 export interface Quiz {
   id: EntityId;
-  lessonId: EntityId;
+  moduleId: EntityId;
   title: string;
-  questions: Question[];
+  description?: string;
+  questions?: Question[];
+  maxScore?: number;
   passingScore: number;
-  timeLimit?: number;          // minutes
+  timeLimitMinutes?: number;
+  generatedByAi?: boolean;
 }
 
 export interface Question {

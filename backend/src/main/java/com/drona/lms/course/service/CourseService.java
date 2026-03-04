@@ -11,11 +11,14 @@ import com.drona.lms.domain.entity.Course;
 import com.drona.lms.domain.entity.CourseModule;
 import com.drona.lms.domain.entity.Enrollment;
 import com.drona.lms.domain.entity.Lesson;
+import com.drona.lms.domain.entity.Quiz;
 import com.drona.lms.domain.repository.CourseRepository;
 import com.drona.lms.domain.repository.EnrollmentRepository;
+import com.drona.lms.domain.repository.QuizRepository;
 import com.drona.lms.domain.repository.UserRepository;
 import com.drona.lms.lesson.dto.LessonResponse;
 import com.drona.lms.module.dto.ModuleResponse;
+import com.drona.lms.quiz.dto.QuizResponse;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -37,6 +40,7 @@ public class CourseService {
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
     private final EnrollmentRepository enrollmentRepository;
+    private final QuizRepository quizRepository;
     private final CourseAccessService courseAccessService;
 
     @Transactional(readOnly = true)
@@ -246,6 +250,13 @@ public class CourseService {
                 .map(this::toLessonResponse)
                 .collect(Collectors.toList());
         
+        // Load quizzes for this module
+        List<QuizResponse> quizzes = quizRepository.findByModuleId(module.getId(), Pageable.unpaged())
+                .getContent()
+                .stream()
+                .map(this::toQuizResponse)
+                .collect(Collectors.toList());
+        
         return ModuleResponse.builder()
                 .id(module.getId())
                 .courseId(module.getCourse().getId())
@@ -253,6 +264,7 @@ public class CourseService {
                 .description(module.getDescription())
                 .position(module.getPosition())
                 .lessons(lessons)
+                .quizzes(quizzes)
                 .build();
     }
     
@@ -267,6 +279,19 @@ public class CourseService {
                 .contentText(lesson.getContentText())
                 .durationSeconds(lesson.getDurationSeconds())
                 .position(lesson.getPosition())
+                .build();
+    }
+    
+    private QuizResponse toQuizResponse(Quiz quiz) {
+        return QuizResponse.builder()
+                .id(quiz.getId())
+                .moduleId(quiz.getModule().getId())
+                .title(quiz.getTitle())
+                .description(quiz.getDescription())
+                .maxScore(quiz.getMaxScore())
+                .timeLimitMinutes(quiz.getTimeLimitMinutes())
+                .passingScore(quiz.getPassingScore())
+                .generatedByAi(quiz.isGeneratedByAi())
                 .build();
     }
 }

@@ -574,7 +574,9 @@ export class ManageContentComponent implements OnInit, OnDestroy  {
           this.api.createQuiz(moduleId, quizData).pipe(takeUntil(this.destroy$)).subscribe({
             next: (newQuiz) => {
               this.quizzes.set([...this.quizzes(), newQuiz]);
-              this.snackBar.open('Quiz created successfully', 'Close', { duration: 3000 });
+              this.snackBar.open('Quiz created successfully', 'Close', { duration: 2000 });
+              // Navigate to manage questions page
+              setTimeout(() => this.manageQuestions(newQuiz.id), 500);
             },
             error: (err) => {
               console.error('Error creating quiz:', err);

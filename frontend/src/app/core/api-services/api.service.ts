@@ -71,32 +71,12 @@ export class ApiService {
   }
 
   getCourse(id: EntityId): Observable<CourseDetail> {
-    return this.http.get<any>(`${this.base}/courses/${id}`).pipe(
-      switchMap(course => this.getModulesByCourse(id).pipe(
-        switchMap(modules => {
-          if (modules.length === 0) {
-            return of({
-              ...this.mapCourse(course),
-              modules: [],
-              requirements: [],
-              objectives: []
-            } as CourseDetail);
-          }
-
-          const lessonStreams = modules.map(module => this.getLessonsByModule(module.id).pipe(
-            map(lessons => ({ ...module, lessons }))
-          ));
-
-          return forkJoin(lessonStreams).pipe(
-            map(modulesWithLessons => ({
-              ...this.mapCourse(course),
-              modules: modulesWithLessons,
-              requirements: [],
-              objectives: []
-            } as CourseDetail))
-          );
-        })
-      ))
+    return this.http.get<CourseDetail>(`${this.base}/courses/${id}`).pipe(
+      map(course => ({
+        ...course,
+        requirements: course.requirements || [],
+        objectives: course.objectives || []
+      }))
     );
   }
 
