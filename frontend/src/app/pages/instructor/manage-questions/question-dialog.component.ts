@@ -40,18 +40,18 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Question Type</mat-label>
           <mat-select formControlName="questionType">
-            <mat-option value="MULTIPLE_CHOICE">Multiple Choice</mat-option>
+            <mat-option value="MCQ_SINGLE">Multiple Choice (Single Answer)</mat-option>
+            <mat-option value="MCQ_MULTIPLE">Multiple Choice (Multiple Answers)</mat-option>
             <mat-option value="TRUE_FALSE">True/False</mat-option>
             <mat-option value="SHORT_ANSWER">Short Answer</mat-option>
-            <mat-option value="ESSAY">Essay</mat-option>
           </mat-select>
         </mat-form-field>
 
-        <!-- Options (for MULTIPLE_CHOICE and TRUE_FALSE) -->
+        <!-- Options (for MCQ and TRUE_FALSE) -->
         <div *ngIf="showOptions()" class="options-section">
           <div class="section-header">
             <h4>Answer Options</h4>
-            <button *ngIf="questionType() === 'MULTIPLE_CHOICE'" 
+            <button *ngIf="questionType() === 'MCQ_SINGLE' || questionType() === 'MCQ_MULTIPLE'" 
                     mat-button type="button" (click)="addOption()">
               <mat-icon>add</mat-icon> Add Option
             </button>
@@ -68,14 +68,22 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
                        [placeholder]="'Option ' + (i + 1)">
               </mat-form-field>
 
-              <mat-radio-button [value]="i" 
+              <!-- Use radio for single choice, checkbox for multiple -->
+              <mat-radio-button *ngIf="questionType() === 'MCQ_SINGLE'"
+                                [value]="i" 
                                 [checked]="opt.get('isCorrect')?.value"
                                 (change)="setCorrectAnswer(i)"
                                 color="primary">
                 Correct
               </mat-radio-button>
 
-              <button *ngIf="questionType() === 'MULTIPLE_CHOICE' && options.length > 2" 
+              <mat-checkbox *ngIf="questionType() === 'MCQ_MULTIPLE' || questionType() === 'TRUE_FALSE'"
+                            formControlName="isCorrect"
+                            color="primary">
+                Correct
+              </mat-checkbox>
+
+              <button *ngIf="(questionType() === 'MCQ_SINGLE' || questionType() === 'MCQ_MULTIPLE') && options.length > 2" 
                       mat-icon-button type="button" (click)="removeOption(i)"
                       color="warn">
                 <mat-icon>delete</mat-icon>
@@ -92,30 +100,12 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
                  placeholder="Enter the correct answer">
         </mat-form-field>
 
-        <div class="row">
-          <!-- Points -->
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Points</mat-label>
-            <input matInput type="number" formControlName="points" min="1">
-            <mat-error *ngIf="form.get('points')?.hasError('required')">Required</mat-error>
-          </mat-form-field>
-
-          <!-- Difficulty -->
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Difficulty</mat-label>
-            <mat-select formControlName="difficulty">
-              <mat-option value="EASY">Easy</mat-option>
-              <mat-option value="MEDIUM">Medium</mat-option>
-              <mat-option value="HARD">Hard</mat-option>
-            </mat-select>
-          </mat-form-field>
-        </div>
-
-        <!-- Explanation (Optional) -->
+        <!-- Points -->
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Explanation (Optional)</mat-label>
-          <textarea matInput formControlName="explanation" rows="2" 
-                    placeholder="Explain why this is the correct answer..."></textarea>
+          <mat-label>Points</mat-label>
+          <input matInput type="number" formControlName="points" min="1" step="1">
+          <mat-error *ngIf="form.get('points')?.hasError('required')">Required</mat-error>
+          <mat-hint>Points awarded for correct answer</mat-hint>
         </mat-form-field>
       </form>
     </mat-dialog-content>
@@ -242,15 +232,13 @@ export class QuestionDialogComponent {
   private fb = inject(FormBuilder);
   private dialogRef = inject(MatDialogRef<QuestionDialogComponent>);
 
-  questionType = signal(this.data.question?.questionType || 'MULTIPLE_CHOICE');
+  questionType = signal(this.data.question?.questionType || 'MCQ_SINGLE');
 
   form = this.fb.group({
     questionText: [this.data.question?.questionText || '', Validators.required],
-    questionType: [this.data.question?.questionType || 'MULTIPLE_CHOICE', Validators.required],
+    questionType: [this.data.question?.questionType || 'MCQ_SINGLE', Validators.required],
     points: [this.data.question?.points || 10, [Validators.required, Validators.min(1)]],
-    difficulty: [this.data.question?.difficulty || 'MEDIUM'],
     correctAnswer: [this.data.question?.correctAnswer || ''],
-    explanation: [this.data.question?.explanation || ''],
     options: this.fb.array([])
   });
 
@@ -272,15 +260,20 @@ export class QuestionDialogComponent {
   initializeOptions(): void {
     const type = this.questionType();
     
-    if (this.data.question?.options?.length) {
-      // Load existing options
-      this.data.question.options.forEach((opt: any) => {
-        this.options.push(this.fb.group({
-          optionText: [opt.optionText, Validators.required],
-          isCorrect: [opt.isCorrect]
-        }));
-      });
-    } else if (type === 'MULTIPLE_CHOICE') {
+    if (this.data.question?.optionsJson) {
+      // Load existing options from JSON string
+      try {
+        const options = JSON.parse(this.data.question.optionsJson);
+        options.forEach((opt: any) => {
+          this.options.push(this.fb.group({
+            optionText: [opt.text || opt.optionText, Validators.required],
+            isCorrect: [opt.isCorrect || false]
+          }));
+        });
+      } catch (e) {
+        console.error('Failed to parse options JSON:', e);
+      }
+    } else if (type === 'MCQ_SINGLE' || type === 'MCQ_MULTIPLE') {
       // Default 4 options for new multiple choice
       for (let i = 0; i < 4; i++) {
         this.options.push(this.fb.group({
@@ -304,7 +297,7 @@ export class QuestionDialogComponent {
   updateOptionsForType(type: string): void {
     this.options.clear();
     
-    if (type === 'MULTIPLE_CHOICE') {
+    if (type === 'MCQ_SINGLE' || type === 'MCQ_MULTIPLE') {
       for (let i = 0; i < 4; i++) {
         this.options.push(this.fb.group({
           optionText: ['', Validators.required],
@@ -325,7 +318,7 @@ export class QuestionDialogComponent {
 
   showOptions(): boolean {
     const type = this.questionType();
-    return type === 'MULTIPLE_CHOICE' || type === 'TRUE_FALSE';
+    return type === 'MCQ_SINGLE' || type === 'MCQ_MULTIPLE' || type === 'TRUE_FALSE';
   }
 
   addOption(): void {
@@ -352,12 +345,24 @@ export class QuestionDialogComponent {
     if (this.form.valid) {
       const formValue = this.form.value;
       
-      // Remove options for non-multiple-choice questions
-      if (!this.showOptions()) {
-        delete formValue.options;
+      // Prepare data for backend
+      const questionData: any = {
+        questionText: formValue.questionText,
+        questionType: formValue.questionType,
+        points: formValue.points,
+        correctAnswer: formValue.correctAnswer || null
+      };
+
+      // Convert options array to JSON string for backend
+      if (this.showOptions() && formValue.options && formValue.options.length > 0) {
+        const optionsArray = formValue.options.map((opt: any) => ({
+          text: opt.optionText,
+          isCorrect: opt.isCorrect || false
+        }));
+        questionData.optionsJson = JSON.stringify(optionsArray);
       }
 
-      this.dialogRef.close(formValue);
+      this.dialogRef.close(questionData);
     }
   }
 
