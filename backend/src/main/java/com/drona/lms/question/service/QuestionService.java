@@ -36,7 +36,7 @@ public class QuestionService {
 
     @Transactional
     public QuestionResponse create(UUID quizId, QuestionRequest request, String actorEmail) {
-        var quiz = quizRepository.findById(quizId)
+        var quiz = quizRepository.findByIdWithCourseAndInstructor(quizId)
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz not found: " + quizId));
 
         courseAccessService.assertAdminOrCourseInstructor(actorEmail, quiz.getModule().getCourse().getInstructor().getEmail());
@@ -51,7 +51,12 @@ public class QuestionService {
     public QuestionResponse update(UUID questionId, QuestionRequest request, String actorEmail) {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Question not found: " + questionId));
-        courseAccessService.assertAdminOrCourseInstructor(actorEmail, question.getQuiz().getModule().getCourse().getInstructor().getEmail());
+        
+        // Fetch quiz with course and instructor for access check
+        var quiz = quizRepository.findByIdWithCourseAndInstructor(question.getQuiz().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Quiz not found"));
+        
+        courseAccessService.assertAdminOrCourseInstructor(actorEmail, quiz.getModule().getCourse().getInstructor().getEmail());
         applyRequest(question, request);
         return toResponse(questionRepository.save(question));
     }
@@ -60,7 +65,12 @@ public class QuestionService {
     public void delete(UUID questionId, String actorEmail) {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Question not found: " + questionId));
-        courseAccessService.assertAdminOrCourseInstructor(actorEmail, question.getQuiz().getModule().getCourse().getInstructor().getEmail());
+        
+        // Fetch quiz with course and instructor for access check
+        var quiz = quizRepository.findByIdWithCourseAndInstructor(question.getQuiz().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Quiz not found"));
+        
+        courseAccessService.assertAdminOrCourseInstructor(actorEmail, quiz.getModule().getCourse().getInstructor().getEmail());
         questionRepository.delete(question);
     }
 

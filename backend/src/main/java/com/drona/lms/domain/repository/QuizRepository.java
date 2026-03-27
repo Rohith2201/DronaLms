@@ -12,6 +12,13 @@ public interface QuizRepository extends JpaRepository<Quiz, UUID> {
 
 	Page<Quiz> findByModuleId(UUID moduleId, Pageable pageable);
 	
+	@Query("SELECT q FROM Quiz q " +
+		   "JOIN FETCH q.module m " +
+		   "JOIN FETCH m.course c " +
+		   "JOIN FETCH c.instructor " +
+		   "WHERE q.id = :quizId")
+	java.util.Optional<Quiz> findByIdWithCourseAndInstructor(@Param("quizId") UUID quizId);
+	
 	@Query("SELECT COUNT(q) FROM Quiz q WHERE q.module.course.id = :courseId")
 	Long countByCourseId(@Param("courseId") UUID courseId);
 	

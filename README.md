@@ -9,7 +9,7 @@ Production-ready, microservice-ready Learning Management System foundation.
 - Database: PostgreSQL
 - Auth: JWT + Spring Security
 - AI Service: FastAPI (Python)
-- Storage: S3-compatible object storage
+- Storage: NeonDB (Migrating to aws soon)
 
 ## Workspace Structure
 

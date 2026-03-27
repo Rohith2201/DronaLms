@@ -80,12 +80,12 @@ import { QuestionDialogComponent } from './question-dialog.component';
             <mat-card-content>
               <div class="question-text">{{ question.questionText }}</div>
               
-              <div class="options-list" *ngIf="question.options?.length">
-                <div *ngFor="let opt of question.options; let j = index" 
+              <div class="options-list" *ngIf="getQuestionOptions(question).length">
+                <div *ngFor="let opt of getQuestionOptions(question); let j = index" 
                      class="option-item"
                      [class.correct]="opt.isCorrect">
                   <div class="option-number">{{ getOptionLetter(j) }}</div>
-                  <div class="option-text">{{ opt.optionText }}</div>
+                  <div class="option-text">{{ opt.text }}</div>
                   <mat-icon *ngIf="opt.isCorrect" class="correct-icon">check_circle</mat-icon>
                 </div>
               </div>
@@ -336,8 +336,12 @@ export class ManageQuestionsComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result) {
         if (question) {
-          // Update existing question
-          this.api.updateQuestion(question.id, result).pipe(takeUntil(this.destroy$)).subscribe({
+          // Update existing question - preserve position field
+          const questionData = {
+            ...result,
+            position: question.position
+          };
+          this.api.updateQuestion(question.id, questionData).pipe(takeUntil(this.destroy$)).subscribe({
             next: (updated) => {
               const index = this.questions().findIndex(q => q.id === question.id);
               if (index !== -1) {
@@ -353,8 +357,14 @@ export class ManageQuestionsComponent implements OnInit, OnDestroy {
             }
           });
         } else {
-          // Create new question
-          this.api.createQuestion(this.quizId, result).pipe(takeUntil(this.destroy$)).subscribe({
+          // Create new question - calculate next available position
+          const existingPositions = this.questions().map(q => q.position || 0);
+          const maxPosition = existingPositions.length > 0 ? Math.max(...existingPositions) : 0;
+          const questionData = {
+            ...result,
+            position: maxPosition + 1
+          };
+          this.api.createQuestion(this.quizId, questionData).pipe(takeUntil(this.destroy$)).subscribe({
             next: (newQuestion) => {
               this.questions.set([...this.questions(), newQuestion]);
               this.snackBar.open('Question added successfully', 'Close', { duration: 3000 });
@@ -388,20 +398,30 @@ export class ManageQuestionsComponent implements OnInit, OnDestroy {
 
   getTypeLabel(type: string): string {
     const labels: Record<string, string> = {
-      'MULTIPLE_CHOICE': 'Multiple Choice',
+      'MCQ_SINGLE': 'Multiple Choice',
+      'MCQ_MULTIPLE': 'Multiple Choice (Multi)',
       'TRUE_FALSE': 'True/False',
-      'SHORT_ANSWER': 'Short Answer',
-      'ESSAY': 'Essay'
+      'SHORT_ANSWER': 'Short Answer'
     };
     return labels[type] || type;
   }
 
+  getQuestionOptions(question: any): any[] {
+    if (!question.optionsJson) return [];
+    try {
+      return JSON.parse(question.optionsJson);
+    } catch (e) {
+      console.error('Failed to parse options JSON:', e);
+      return [];
+    }
+  }
+
   getTypeColor(type: string): string {
     const colors: Record<string, string> = {
-      'MULTIPLE_CHOICE': 'primary',
-      'TRUE_FALSE': 'accent',
-      'SHORT_ANSWER': 'warn',
-      'ESSAY': ''
+      'MCQ_SINGLE': 'primary',
+      'MCQ_MULTIPLE': 'accent',
+      'TRUE_FALSE': 'warn',
+      'SHORT_ANSWER': ''
     };
     return colors[type] || '';
   }

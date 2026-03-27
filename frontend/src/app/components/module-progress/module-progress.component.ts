@@ -18,7 +18,10 @@ import { CourseModule, EntityId } from '../../core/models';
           </div>
           <div class="module-info">
             <span class="module-title">{{ module.title }}</span>
-            <span class="module-meta">{{ completedCount }}/{{ module.lessons.length }} lessons</span>
+            <span class="module-meta">
+              {{ completedCount }}/{{ module.lessons.length }} lessons
+              <span *ngIf="totalQuizzes > 0"> • {{ totalQuizzes }} quiz{{ totalQuizzes > 1 ? 'zes' : '' }}</span>
+            </span>
           </div>
         </div>
         <div class="module-header__right">
@@ -48,6 +51,23 @@ import { CourseModule, EntityId } from '../../core/models';
             <span class="lesson-type">
               <mat-icon>{{ getLessonIcon(lesson.type) }}</mat-icon>
               {{ formatDuration(lesson.duration) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Quizzes list -->
+        <div *ngFor="let quiz of module.quizzes || []"
+             class="lesson-item quiz-item"
+             [class.active]="activeQuizId === quiz.id"
+             (click)="!module.isLocked && onQuizSelect.emit(quiz.id)">
+          <div class="lesson-status">
+            <mat-icon class="quiz-icon">quiz</mat-icon>
+          </div>
+          <div class="lesson-info">
+            <span class="lesson-title">{{ quiz.title }}</span>
+            <span class="lesson-type">
+              <mat-icon>timer</mat-icon>
+              {{ quiz.timeLimitMinutes ? quiz.timeLimitMinutes + ' min' : 'No time limit' }}
             </span>
           </div>
         </div>
@@ -168,11 +188,25 @@ import { CourseModule, EntityId } from '../../core/models';
       }
 
       &.completed .lesson-title { color: var(--text-muted); text-decoration: line-through; }
+
+      &.quiz-item {
+        background: rgba(255, 193, 7, 0.05);
+        border-left: 3px solid #ffc107;
+
+        &:hover { background: rgba(255, 193, 7, 0.1); }
+
+        &.active {
+          background: rgba(255, 193, 7, 0.15);
+          border-right: 3px solid #ffc107;
+          border-left: 3px solid #ffc107;
+        }
+      }
     }
 
     .lesson-status {
       .completed-icon { color: var(--success); font-size: 18px; }
       .pending-icon  { color: var(--border);   font-size: 18px; }
+      .quiz-icon { color: #ffc107; font-size: 18px; }
     }
 
     .lesson-info {
@@ -201,7 +235,9 @@ import { CourseModule, EntityId } from '../../core/models';
 export class ModuleProgressComponent {
   @Input({ required: true }) module!: CourseModule;
   @Input() activeLessonId?: EntityId;
+  @Input() activeQuizId?: EntityId;
   @Output() onLessonSelect = new EventEmitter<EntityId>();
+  @Output() onQuizSelect = new EventEmitter<EntityId>();
 
   expanded = true; // Expand modules by default
 
@@ -211,6 +247,10 @@ export class ModuleProgressComponent {
 
   get completedCount(): number {
     return this.module.lessons.filter(l => l.isCompleted).length;
+  }
+
+  get totalQuizzes(): number {
+    return this.module.quizzes?.length || 0;
   }
 
   get progressPercent(): number {

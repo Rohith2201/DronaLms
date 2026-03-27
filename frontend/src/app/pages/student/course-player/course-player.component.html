@@ -55,7 +55,9 @@
           *ngFor="let mod of course?.modules; trackBy: trackById"
           [module]="mod"
           [activeLessonId]="activeLesson?.id"
-          (onLessonSelect)="loadLesson($event)">
+          [activeQuizId]="activeQuizId()"
+          (onLessonSelect)="loadLesson($event)"
+          (onQuizSelect)="loadQuiz($event)">
         </app-module-progress>
       </div>
     </aside>

@@ -1,0 +1,258 @@
+<div class="quiz-container" [class.started]="hasStarted()">
+  
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading-state" style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+    <mat-spinner></mat-spinner>
+    <p style="margin-left: 20px;">Loading quiz...</p>
+  </div>
+
+  <!-- No Questions Warning -->
+  <div *ngIf="!loading() && questions.length === 0" class="empty-state" style="text-align: center; padding: 50px;">
+    <mat-icon style="font-size: 64px; height: 64px; width: 64px; color: #999;">quiz</mat-icon>
+    <h2>No Questions Available</h2>
+    <p>This quiz doesn't have any questions yet. Please contact your instructor.</p>
+    <button mat-raised-button color="primary" (click)="router.navigate(['/student/courses'])">Back to Courses</button>
+  </div>
+  
+  <!-- Pre-Quiz: Mode Selection -->
+  <div *ngIf="!loading() && !hasStarted() && questions.length > 0" class="pre-quiz">
+    <div class="quiz-intro">
+      <mat-icon class="quiz-icon">quiz</mat-icon>
+      <h1>{{ quiz?.title }}</h1>
+      <p class="description" *ngIf="quiz?.description">{{ quiz?.description }}</p>
+      
+      <div class="quiz-details">
+        <div class="detail-card">
+          <mat-icon>timer</mat-icon>
+          <span class="label">Duration</span>
+          <span class="value">{{ quiz?.timeLimitMinutes }} min</span>
+        </div>
+        <div class="detail-card">
+          <mat-icon>quiz</mat-icon>
+          <span class="label">Questions</span>
+          <span class="value">{{ questions.length }}</span>
+        </div>
+        <div class="detail-card">
+          <mat-icon>emoji_events</mat-icon>
+          <span class="label">Passing</span>
+          <span class="value">{{ quiz?.passingScore }}%</span>
+        </div>
+        <div class="detail-card">
+          <mat-icon>grade</mat-icon>
+          <span class="label">Max Score</span>
+          <span class="value">{{ quiz?.maxScore }}</span>
+        </div>
+      </div>
+
+      <div class="mode-selection">
+        <h3>Choose Your Quiz Mode:</h3>
+        <div class="mode-buttons">
+          <button mat-raised-button class="mode-btn" (click)="showTermsAndStart('single')">
+            <mat-icon>looks_one</mat-icon>
+            <span class="mode-title">Question by Question</span>
+            <span class="mode-desc">Navigate one question at a time</span>
+          </button>
+          <button mat-raised-button class="mode-btn" (click)="showTermsAndStart('all')">
+            <mat-icon>view_agenda</mat-icon>
+            <span class="mode-title">All Questions</span>
+            <span class="mode-desc">View all questions on one page</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- During Quiz -->
+  <div *ngIf="hasStarted() && !hasSubmitted()" class="quiz-active">
+    
+    <!-- Top Bar with Timer and Status -->
+    <div class="top-bar">
+      <div class="quiz-title">
+        <mat-icon>quiz</mat-icon>
+        <span>{{ quiz?.title }}</span>
+      </div>
+      
+      <div class="status-indicators">
+        <!-- Network Status -->
+        <div class="indicator" [class.offline]="!isNetworkOnline()">
+          <mat-icon>{{ isNetworkOnline() ? 'wifi' : 'wifi_off' }}</mat-icon>
+          <span>{{ isNetworkOnline() ? 'Online' : 'Offline' }}</span>
+        </div>
+        
+        <!-- Timer -->
+        <div class="timer" [class.warning]="timeRemaining() < 300" [class.critical]="timeRemaining() < 60">
+          <mat-icon>timer</mat-icon>
+          <span>{{ formatTime(timeRemaining()) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Warnings -->
+    <div class="warnings" *ngIf="showTabWarning() || showNetworkWarning()">
+      <div class="warning-banner tab-warning" *ngIf="showTabWarning()">
+        <mat-icon>warning</mat-icon>
+        <span>Tab switches detected: {{ tabSwitchCount }}/{{ maxTabSwitches }}. Stay on this page!</span>
+      </div>
+      <div class="warning-banner network-warning" *ngIf="showNetworkWarning()">
+        <mat-icon>wifi_off</mat-icon>
+        <span>Network connection lost. Timer paused. Please check your connection.</span>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-section">
+      <mat-progress-bar mode="determinate" [value]="progressPercent"></mat-progress-bar>
+      <span class="progress-text">{{ answeredCount }} / {{ questions.length }} answered</span>
+    </div>
+
+    <!-- Single Question Mode -->
+    <div *ngIf="quizMode === 'single'" class="single-mode">
+      <div class="question-navigation">
+        <span class="question-number">Question {{ currentQuestionIndex + 1 }} of {{ questions.length }}</span>
+        <div class="nav-dots">
+          <button
+            *ngFor="let q of questions; let i = index"
+            class="dot"
+            [class.active]="i === currentQuestionIndex"
+            [class.answered]="isQuestionAnswered(i)"
+            (click)="goToQuestion(i)"
+            [matTooltip]="'Question ' + (i + 1)">
+          </button>
+        </div>
+      </div>
+
+      <form [formGroup]="quizForm" *ngIf="quizForm">
+        <div formArrayName="answers">
+        <ng-container *ngIf="questions[currentQuestionIndex] as question">
+        <div class="question-card">
+          <h3 class="question-text">{{ question.text }}</h3>
+          
+          <!-- MCQ Single -->
+          <mat-radio-group *ngIf="question.type === 'MCQ_SINGLE'" [formControlName]="currentQuestionIndex">
+            <mat-radio-button
+              *ngFor="let option of question.options; let i = index"
+              [value]="getOptionValue(option)"
+              class="option">
+              {{ option.text }}
+            </mat-radio-button>
+          </mat-radio-group>
+
+          <!-- MCQ Multiple -->
+          <div *ngIf="question.type === 'MCQ_MULTIPLE'" class="options-list">
+            <mat-checkbox
+              *ngFor="let option of question.options"
+              [value]="getOptionValue(option)"
+              [checked]="isOptionSelected(currentQuestionIndex, getOptionValue(option))"
+              (change)="onCheckboxChange($event, currentQuestionIndex, getOptionValue(option))"
+              class="option">
+              {{ option.text }}
+            </mat-checkbox>
+          </div>
+
+          <!-- True/False -->
+          <mat-radio-group *ngIf="question.type === 'TRUE_FALSE'" [formControlName]="currentQuestionIndex">
+            <mat-radio-button [value]="'true'" class="option">True</mat-radio-button>
+            <mat-radio-button [value]="'false'" class="option">False</mat-radio-button>
+          </mat-radio-group>
+
+          <!-- Short Answer -->
+          <mat-form-field *ngIf="question.type === 'SHORT_ANSWER'" appearance="outline" class="full-width">
+            <mat-label>Your Answer</mat-label>
+            <textarea matInput [formControlName]="currentQuestionIndex" rows="4"></textarea>
+          </mat-form-field>
+        </div>
+
+        <div class="navigation-buttons">
+          <button mat-stroked-button [disabled]="currentQuestionIndex === 0" (click)="previousQuestion()">
+            <mat-icon>navigate_before</mat-icon> Previous
+          </button>
+          
+          <button
+            mat-flat-button
+            color="primary"
+            *ngIf="currentQuestionIndex < questions.length - 1"
+            (click)="nextQuestion()">
+            Next <mat-icon>navigate_next</mat-icon>
+          </button>
+          
+          <button
+            mat-flat-button
+            color="accent"
+            *ngIf="currentQuestionIndex === questions.length - 1"
+            (click)="submitQuiz()">
+            Submit Quiz <mat-icon>send</mat-icon>
+          </button>
+        </div>
+        </ng-container>
+        </div>
+      </form>
+    </div>
+
+    <!-- All Questions Mode -->
+    <div *ngIf="quizMode === 'all'" class="all-mode">
+      <form [formGroup]="quizForm">
+        <div formArrayName="answers" class="questions-list">
+          <div
+            *ngFor="let question of questions; let i = index"
+            class="question-card"
+            [class.answered]="isQuestionAnswered(i)">
+            
+            <div class="question-header">
+              <span class="q-number">Question {{ i + 1 }}</span>
+              <mat-icon *ngIf="isQuestionAnswered(i)" class="check-icon">check_circle</mat-icon>
+            </div>
+            
+            <h3 class="question-text">{{ question.text }}</h3>
+            
+            <!-- MCQ Single -->
+            <mat-radio-group *ngIf="question.type === 'MCQ_SINGLE'" [formControlName]="i">
+              <mat-radio-button
+                *ngFor="let option of question.options"
+                [value]="getOptionValue(option)"
+                class="option">
+                {{ option.text }}
+              </mat-radio-button>
+            </mat-radio-group>
+
+            <!-- MCQ Multiple -->
+            <div *ngIf="question.type === 'MCQ_MULTIPLE'" class="options-list">
+              <mat-checkbox
+                *ngFor="let option of question.options"
+                [value]="getOptionValue(option)"
+                [checked]="isOptionSelected(i, getOptionValue(option))"
+                (change)="onCheckboxChange($event, i, getOptionValue(option))"
+                class="option">
+                {{ option.text }}
+              </mat-checkbox>
+            </div>
+
+            <!-- True/False -->
+            <mat-radio-group *ngIf="question.type === 'TRUE_FALSE'" [formControlName]="i">
+              <mat-radio-button [value]="'true'" class="option">True</mat-radio-button>
+              <mat-radio-button [value]="'false'" class="option">False</mat-radio-button>
+            </mat-radio-group>
+
+            <!-- Short Answer -->
+            <mat-form-field *ngIf="question.type === 'SHORT_ANSWER'" appearance="outline" class="full-width">
+              <mat-label>Your Answer</mat-label>
+              <textarea matInput [formControlName]="i" rows="4"></textarea>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="submit-section">
+          <button mat-flat-button color="accent" (click)="submitQuiz()" class="submit-btn">
+            <mat-icon>send</mat-icon>
+            Submit Quiz
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Exit Button (sticky) -->
+    <button mat-mini-fab class="exit-btn" (click)="exitQuiz()" matTooltip="Exit Quiz">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+</div>

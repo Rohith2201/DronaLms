@@ -83,6 +83,16 @@ const routes: Routes = [
         loadComponent: () => import('../../pages/admin/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent)
       },
       {
+        path: 'admin/analytics',
+        canActivate: [RoleGuard], data: { roles: ['ADMIN'] },
+        loadComponent: () => import('../../pages/admin/analytics/admin-analytics.component').then(m => m.AdminAnalyticsComponent)
+      },
+      {
+        path: 'admin/reports',
+        canActivate: [RoleGuard], data: { roles: ['ADMIN'] },
+        loadComponent: () => import('../../pages/admin/reports/admin-reports.component').then(m => m.AdminReportsComponent)
+      },
+      {
         path: 'admin/users',
         canActivate: [RoleGuard], data: { roles: ['ADMIN'] },
         loadComponent: () => import('../../pages/admin/users-management/users-management.component').then(m => m.UsersManagementComponent)

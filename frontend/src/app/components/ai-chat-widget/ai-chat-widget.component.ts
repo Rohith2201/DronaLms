@@ -1,6 +1,6 @@
 import {
   Component, Input, Output, EventEmitter, OnInit, OnDestroy,
-  ViewChild, ElementRef, ChangeDetectionStrategy, signal, computed
+  ViewChild, ElementRef, ChangeDetectionStrategy, signal, computed, effect
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
@@ -97,8 +97,7 @@ import { AiChatMessage, EntityId } from '../../core/models';
           <input matInput
             [formControl]="inputCtrl"
             placeholder="Ask anything about this lesson..."
-            (keydown.enter)="sendMessage()"
-            [disabled]="isTyping()">
+            (keydown.enter)="sendMessage()">
           <mat-icon matPrefix>chat_bubble_outline</mat-icon>
         </mat-form-field>
         <button mat-fab color="primary" class="send-btn"
@@ -331,7 +330,16 @@ export class AiChatWidgetComponent implements OnDestroy {
     'Why is this important?'
   ];
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService) {
+    // Enable/disable input based on typing state
+    effect(() => {
+      if (this.isTyping()) {
+        this.inputCtrl.disable();
+      } else {
+        this.inputCtrl.enable();
+      }
+    });
+  }
 
   sendSuggestion(text: string): void {
     this.inputCtrl.setValue(text);

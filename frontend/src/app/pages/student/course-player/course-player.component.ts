@@ -31,6 +31,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
   activeLesson?: Lesson;
   rightPanel: 'notes' | 'ai' | 'resources' = 'ai';
   sidebarOpen = signal(true);
+  activeQuizId = signal<EntityId | undefined>(undefined);
   loading = true;
 
   toggleSidebar(): void { this.sidebarOpen.update(v => !v); }
@@ -119,12 +120,23 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
       const lesson = mod.lessons.find(l => l.id === lessonId);
       if (lesson) {
         this.activeLesson = lesson;
+        this.activeQuizId.set(undefined); // Clear active quiz when selecting a lesson
         this.store.setActiveLesson(lesson);
         this.store.setActiveModule(mod);
         this.cdr.markForCheck();
         return;
       }
     }
+  }
+
+  loadQuiz(quizId: EntityId): void {
+    if (!this.course) return;
+    // Clear active lesson when selecting a quiz
+    this.activeLesson = undefined;
+    this.activeQuizId.set(quizId);
+    
+    // Navigate to quiz taking page
+    this.router.navigate(['/student/quiz', quizId]);
   }
 
   onVideoProgress(vp: VideoProgress): void {
